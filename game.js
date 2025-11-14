@@ -3,23 +3,22 @@
 // ---------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-canvas.width = 320;
-canvas.height = 240;
+
+// CANVAS MAIOR PARA CENAS MAIS BONITAS
+canvas.width = 640;
+canvas.height = 480;
 
 let gameState = "story"; 
-// story → mostrando cenas
-// fade  → transição
-// play  → jogador pode andar
 
 
 // ---------------------------
 // PLAYER
 // ---------------------------
 let player = {
-    x: 150,
-    y: 120,
-    width: 16,
-    height: 16,
+    x: 300,
+    y: 300,
+    width: 32,   // personagem maior
+    height: 32,
     speed: 2,
     sprite: new Image()
 };
@@ -27,7 +26,7 @@ player.sprite.src = "assets/player.png";
 
 
 // ---------------------------
-// Mapa / Cena de jogo
+// MAPAS
 // ---------------------------
 let mapa = new Image();
 mapa.src = "assets/mapa1.png";
@@ -37,12 +36,12 @@ mapa.src = "assets/mapa1.png";
 // TECLAS
 // ---------------------------
 let keys = {};
-document.addEventListener("keydown", (e) => keys[e.key] = true);
-document.addEventListener("keyup", (e) => keys[e.key] = false);
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup",   e => keys[e.key] = false);
 
 
 // ---------------------------
-// SISTEMA DE DIÁLOGO
+// DIÁLOGOS
 // ---------------------------
 let dialogActive = false;
 let dialogLines = [];
@@ -73,10 +72,10 @@ function nextDialog() {
 
 
 // ---------------------------
-// SISTEMA DE HISTÓRIA (CENAS)
+// CENAS DA HISTÓRIA (FULLSCREEN)
 // ---------------------------
-let storyScene = null;
 let storySceneImg = new Image();
+let storyScene = null;
 
 function showStoryScene(img, dialog = []) {
     gameState = "story";
@@ -90,19 +89,19 @@ function showStoryScene(img, dialog = []) {
 
 
 // ---------------------------
-// FADE TRANSITIONS
+// FADE
 // ---------------------------
 let fadeAlpha = 0;
 let fadeDirection = 0;
 let fadeCallback = null;
 
 function startFadeOut(callback) {
-    fadeDirection = 0.05; // escurecendo
+    fadeDirection = 0.03;
     fadeCallback = callback;
 }
 
 function startFadeIn() {
-    fadeDirection = -0.05; // clareando
+    fadeDirection = -0.03;
 }
 
 function drawFade() {
@@ -129,33 +128,33 @@ function drawFade() {
 // OBJETOS INTERATIVOS
 // ---------------------------
 let objetos = [
-    { x: 200, y: 100, w: 16, h: 16, dialog: ["Um velho baú.", "Está vazio."] }
+    { x: 350, y: 200, w: 32, h: 32,
+      dialog: ["Um velho baú...", "Parece vazio."] }
 ];
 
 function playerNear(obj) {
-    return Math.abs(player.x - obj.x) < 20 &&
-           Math.abs(player.y - obj.y) < 20;
+    return Math.abs(player.x - obj.x) < 60 &&
+           Math.abs(player.y - obj.y) < 60;
 }
 
 
 // ---------------------------
-// ATUALIZAÇÃO DO JOGO
+// UPDATE
 // ---------------------------
 function update() {
+
     if (dialogActive) return;
 
-    if (gameState === "story") {
-        // Apenas espera espaço nos diálogos
-        return;
-    }
+    if (gameState === "story") return;
 
     if (gameState === "play") {
+
         if (keys["ArrowUp"]) player.y -= player.speed;
         if (keys["ArrowDown"]) player.y += player.speed;
         if (keys["ArrowLeft"]) player.x -= player.speed;
         if (keys["ArrowRight"]) player.x += player.speed;
 
-        // Interação com objetos
+        // Interação
         if (keys["e"]) {
             objetos.forEach(obj => {
                 if (playerNear(obj)) {
@@ -168,22 +167,35 @@ function update() {
 
 
 // ---------------------------
-// DESENHAR TUDO
+// DRAW
 // ---------------------------
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (gameState === "story") {
-        if (storyScene) ctx.drawImage(storySceneImg, 0, 0, canvas.width, canvas.height);
+    // HISTÓRIA FULLSCREEN
+    if (gameState === "story" && storySceneImg) {
+        ctx.drawImage(storySceneImg, 0, 0, canvas.width, canvas.height);
     }
 
+    // GAMEPLAY
     if (gameState === "play") {
-        ctx.drawImage(mapa, 0, 0);
-        ctx.drawImage(player.sprite, player.x, player.y);
+        ctx.drawImage(mapa, 0, 0, canvas.width, canvas.height);
 
+        // Player
+        ctx.drawImage(player.sprite, player.x, player.y, player.width, player.height);
+
+        // Objetos
         objetos.forEach(obj => {
+            // desenhar objeto
             ctx.fillStyle = "yellow";
             ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+
+            // texto "Interagir"
+            if (playerNear(obj)) {
+                ctx.font = "16px Arial";
+                ctx.fillStyle = "white";
+                ctx.fillText("Interagir", obj.x - 10, obj.y - 10);
+            }
         });
     }
 
@@ -192,7 +204,7 @@ function draw() {
 
 
 // ---------------------------
-// LOOPS
+// LOOP
 // ---------------------------
 function loop() {
     update();
@@ -207,25 +219,21 @@ loop();
 // ---------------------------
 setTimeout(() => {
     showStoryScene("assets/cena1.png", [
-        "Num dia, D.joao de Portugal foi para a guerra...",
-        "Mas durante essa guerra, ninguem esperava que ele, o heroi portugues desapareceu...",
-        "Depois que ele desapareceu, tudo mudou na vida de D.Madalena."
+        "Era uma noite fria...",
+        "Tudo começou aqui."
     ]);
-}, 500);
+}, 700);
 
 setTimeout(() => {
     showStoryScene("assets/cena2.png", [
-        "Todos os seus amigos e familiares foram no seu funeral...",
-        "Todos estavam abalados, mas tinha uma pessoa que estava ainda mais abalada...",
-        "D.Madalena, sua esposa estava muito abalada por saber a noticia que o seu homem faleceu durante a guerra..."
+        "Ele era só uma criança...",
+        "Mas algo mudaria sua vida..."
     ]);
-}, 6000);
+}, 6500);
 
-// Quando terminar história → fade → jogo
 setTimeout(() => {
     startFadeOut(() => {
-        // Quando ficar preto:
         gameState = "play";
         startFadeIn();
     });
-}, 11000);
+}, 11500);
