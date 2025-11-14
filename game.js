@@ -1,11 +1,20 @@
-// Canvas config
+// ---------------------------
+// CONFIGURAÇÃO DO CANVAS
+// ---------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-
 canvas.width = 320;
 canvas.height = 240;
 
-// Player
+let gameState = "story"; 
+// story → mostrando cenas
+// fade  → transição
+// play  → jogador pode andar
+
+
+// ---------------------------
+// PLAYER
+// ---------------------------
 let player = {
     x: 150,
     y: 120,
@@ -14,120 +23,207 @@ let player = {
     speed: 2,
     sprite: new Image()
 };
-
 player.sprite.src = "assets/player.png";
 
-// Cena atual
-let currentScene = "mapa1";
 
-let maps = {
-    mapa1: "assets/mapa1.png",
-    mapa2: "assets/mapa2.png"
-};
-
+// ---------------------------
+// Mapa / Cena de jogo
+// ---------------------------
 let mapa = new Image();
-mapa.src = maps[currentScene];
+mapa.src = "assets/mapa1.png";
 
-let keys = {};
 
+// ---------------------------
 // TECLAS
-document.addEventListener("keydown", (e) => {
-    keys[e.key] = true;
-
-    // Fechar diálogo ao pressionar espaço
-    if (e.key === " " && dialogActive) {
-        nextDialogLine();
-    }
-});
-
+// ---------------------------
+let keys = {};
+document.addEventListener("keydown", (e) => keys[e.key] = true);
 document.addEventListener("keyup", (e) => keys[e.key] = false);
 
-// --- SISTEMA DE DIÁLOGO ---
+
+// ---------------------------
+// SISTEMA DE DIÁLOGO
+// ---------------------------
 let dialogActive = false;
-let dialogIndex = 0;
 let dialogLines = [];
+let dialogIndex = 0;
 
 function showDialog(lines) {
+    dialogActive = true;
     dialogLines = lines;
     dialogIndex = 0;
-    dialogActive = true;
 
-    document.getElementById("dialogText").innerText = dialogLines[dialogIndex];
-    document.getElementById("dialogBox").classList.remove("hidden");
+    dialogBox.classList.remove("hidden");
+    dialogText.innerText = dialogLines[0];
 }
 
-function nextDialogLine() {
+document.addEventListener("keydown", (e) => {
+    if (e.key === " " && dialogActive) nextDialog();
+});
+
+function nextDialog() {
     dialogIndex++;
     if (dialogIndex >= dialogLines.length) {
-        hideDialog();
+        dialogActive = false;
+        dialogBox.classList.add("hidden");
         return;
     }
-    document.getElementById("dialogText").innerText = dialogLines[dialogIndex];
+    dialogText.innerText = dialogLines[dialogIndex];
 }
 
-function hideDialog() {
-    dialogActive = false;
-    document.getElementById("dialogBox").classList.add("hidden");
+
+// ---------------------------
+// SISTEMA DE HISTÓRIA (CENAS)
+// ---------------------------
+let storyScene = null;
+let storySceneImg = new Image();
+
+function showStoryScene(img, dialog = []) {
+    gameState = "story";
+    storyScene = img;
+    storySceneImg.src = img;
+
+    if (dialog.length > 0) {
+        showDialog(dialog);
+    }
 }
 
-// --- TROCA DE CENAS ---
-function changeScene(name) {
-    currentScene = name;
-    mapa.src = maps[name];
 
-    // Se quiser resetar posição:
-    player.x = 150;
-    player.y = 120;
+// ---------------------------
+// FADE TRANSITIONS
+// ---------------------------
+let fadeAlpha = 0;
+let fadeDirection = 0;
+let fadeCallback = null;
+
+function startFadeOut(callback) {
+    fadeDirection = 0.05; // escurecendo
+    fadeCallback = callback;
 }
 
-// --- SISTEMA PRINCIPAL ---
+function startFadeIn() {
+    fadeDirection = -0.05; // clareando
+}
+
+function drawFade() {
+    if (fadeDirection === 0) return;
+
+    fadeAlpha += fadeDirection;
+
+    ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (fadeAlpha >= 1) {
+        fadeDirection = 0;
+        if (fadeCallback) fadeCallback();
+        fadeCallback = null;
+    }
+
+    if (fadeAlpha <= 0) {
+        fadeDirection = 0;
+    }
+}
+
+
+// ---------------------------
+// OBJETOS INTERATIVOS
+// ---------------------------
+let objetos = [
+    { x: 200, y: 100, w: 16, h: 16, dialog: ["Um velho baú.", "Está vazio."] }
+];
+
+function playerNear(obj) {
+    return Math.abs(player.x - obj.x) < 20 &&
+           Math.abs(player.y - obj.y) < 20;
+}
+
+
+// ---------------------------
+// ATUALIZAÇÃO DO JOGO
+// ---------------------------
 function update() {
-    if (dialogActive) return; // Não move enquanto fala
+    if (dialogActive) return;
 
-    if (keys["ArrowUp"]) player.y -= player.speed;
-    if (keys["ArrowDown"]) player.y += player.speed;
-    if (keys["ArrowLeft"]) player.x -= player.speed;
-    if (keys["ArrowRight"]) player.x += player.speed;
-
-    // Exemplo: ao chegar ao lado direito do mapa 1 → muda para mapa 2
-    if (currentScene === "mapa1" && player.x > 300) {
-        changeScene("mapa2");
-        showDialog([
-            "Você entrou na segunda sala!",
-            "Continue explorando..."
-        ]);
+    if (gameState === "story") {
+        // Apenas espera espaço nos diálogos
+        return;
     }
 
-    // Voltar para o mapa anterior
-    if (currentScene === "mapa2" && player.x < 5) {
-        changeScene("mapa1");
-        showDialog([
-            "Você voltou para a primeira sala."
-        ]);
+    if (gameState === "play") {
+        if (keys["ArrowUp"]) player.y -= player.speed;
+        if (keys["ArrowDown"]) player.y += player.speed;
+        if (keys["ArrowLeft"]) player.x -= player.speed;
+        if (keys["ArrowRight"]) player.x += player.speed;
+
+        // Interação com objetos
+        if (keys["e"]) {
+            objetos.forEach(obj => {
+                if (playerNear(obj)) {
+                    showDialog(obj.dialog);
+                }
+            });
+        }
     }
 }
 
+
+// ---------------------------
+// DESENHAR TUDO
+// ---------------------------
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.drawImage(mapa, 0, 0);
-    ctx.drawImage(player.sprite, player.x, player.y);
+    if (gameState === "story") {
+        if (storyScene) ctx.drawImage(storySceneImg, 0, 0, canvas.width, canvas.height);
+    }
+
+    if (gameState === "play") {
+        ctx.drawImage(mapa, 0, 0);
+        ctx.drawImage(player.sprite, player.x, player.y);
+
+        objetos.forEach(obj => {
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
+        });
+    }
+
+    drawFade();
 }
 
-// LOOP PRINCIPAL
+
+// ---------------------------
+// LOOPS
+// ---------------------------
 function loop() {
     update();
     draw();
     requestAnimationFrame(loop);
 }
-
 loop();
 
-// Exemplo: diálogo inicial
+
+// ---------------------------
+// HISTÓRIA INICIAL
+// ---------------------------
 setTimeout(() => {
-    showDialog([
-        "Olá viajante...",
-        "Este é o começo da sua jornada.",
-        "Use as setas para se mover."
+    showStoryScene("assets/cena1.png", [
+        "Era uma noite fria...",
+        "Tudo começou ali."
     ]);
-}, 800);
+}, 500);
+
+setTimeout(() => {
+    showStoryScene("assets/cena2.png", [
+        "Ele era apenas uma criança...",
+        "Mas seu destino já estava traçado."
+    ]);
+}, 6000);
+
+// Quando terminar história → fade → jogo
+setTimeout(() => {
+    startFadeOut(() => {
+        // Quando ficar preto:
+        gameState = "play";
+        startFadeIn();
+    });
+}, 11000);
