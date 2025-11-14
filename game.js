@@ -207,15 +207,17 @@ loop();
 // ---------------------------
 setTimeout(() => {
     showStoryScene("assets/cena1.png", [
-        "Era uma noite fria...",
-        "Tudo começou ali."
+        "Num dia, D.joao de Portugal foi para a guerra...",
+        "Mas durante essa guerra, ninguem esperava que ele, o heroi portugues desapareceu...",
+        "Depois que ele desapareceu, tudo mudou na vida de D.Madalena."
     ]);
 }, 500);
 
 setTimeout(() => {
     showStoryScene("assets/cena2.png", [
-        "Ele era apenas uma criança...",
-        "Mas seu destino já estava traçado."
+        "Todos os seus amigos e familiares foram no seu funeral...",
+        "Todos estavam abalados, mas tinha uma pessoa que estava ainda mais abalada...",
+        "D.Madalena, sua esposa estava muito abalada por saber a noticia que o seu homem faleceu durante a guerra..."
     ]);
 }, 6000);
 
