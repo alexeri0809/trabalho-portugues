@@ -216,10 +216,19 @@ function loop(timestamp) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (cutsceneActive) { updateCutscene(delta); drawCutscene(); }
-    else if (gameState === "play") { updatePlayer(); drawGame(); }
+    if (cutsceneActive) {
+        updateCutscene(delta);
+        drawCutscene();
+    } else if (gameState === "play") {
+        updatePlayer();
+        drawGame();
+    }
 
     requestAnimationFrame(loop);
 }
+
+// Começa o loop
+requestAnimationFrame(loop);
+
 
 loop();
