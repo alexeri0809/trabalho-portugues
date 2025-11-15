@@ -63,27 +63,33 @@ let mostrandoTexto = "";
 let cutsceneImg = new Image();
 let cutsceneActive = true;
 
-let tempoTexto = 0;       // controla a velocidade do typewriter
-let tempoCena = 0;        // controla a duração da cena
-
 let velocidadeTexto = 35; // ms por letra
 let duracaoCena = 4500;   // ms por cena
 
-cutsceneImg.src = cutsceneData[0].img;
+let tempoTexto = 0;
+let tempoCena = 0;
+
+function iniciarCutscene() {
+    cutsceneImg.src = cutsceneData[cutsceneIndex].img;
+    cutsceneImg.onload = () => {
+        // start loop se quiser garantir que a primeira imagem carregou
+        requestAnimationFrame(loop);
+    };
+}
 
 function updateCutscene(delta) {
-    // Atualiza o texto lentamente (typewriter)
-    if (letraIndex < cutsceneData[cutsceneIndex].texto.length) {
-        tempoTexto += delta;
-        if (tempoTexto > velocidadeTexto) {
-            mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
-            letraIndex++;
-            tempoTexto = 0;
-        }
+    // Atualiza tempo da cena
+    tempoCena += delta;
+
+    // Atualiza texto (typewriter)
+    tempoTexto += delta;
+    if (letraIndex < cutsceneData[cutsceneIndex].texto.length && tempoTexto > velocidadeTexto) {
+        mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
+        letraIndex++;
+        tempoTexto = 0;
     }
 
-    // Atualiza o tempo total da cena
-    tempoCena += delta;
+    // Troca de cena
     if (tempoCena > duracaoCena) {
         cutsceneIndex++;
         letraIndex = 0;
@@ -100,18 +106,20 @@ function updateCutscene(delta) {
             return;
         }
 
+        // Carrega próxima imagem
         cutsceneImg.src = cutsceneData[cutsceneIndex].img;
     }
 }
-
 
 function drawCutscene() {
     // Fundo
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Imagem da cutscene
-    ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
+    // Desenha imagem só se carregou
+    if (cutsceneImg.complete) {
+        ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
+    }
 
     // Caixa de diálogo
     ctx.fillStyle = "rgba(0,0,0,0.65)";
