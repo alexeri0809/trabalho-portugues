@@ -8,7 +8,6 @@ const ctx = canvas.getContext("2d");
 canvas.width = 640;
 canvas.height = 480;
 
-
 //--------------------------------------
 // MÚSICAS
 //--------------------------------------
@@ -28,7 +27,6 @@ let interactSound = new Audio("assets/efeito_interagir.wav");
 interactSound.volume = 0.6;
 
 menuMusic.play();
-
 
 //--------------------------------------
 // MENU FUNÇÕES
@@ -60,17 +58,29 @@ function sair() {
     alert("Obrigado por jogar! (num jogo real, isto fecharia o programa)");
 }
 
-
 //--------------------------------------
-// CUTSCENE AUTOMÁTICA
+// CUTSCENE AUTOMÁTICA COM LEGENDAS
 //--------------------------------------
 let scenes = [];
+let sceneTexts = [
+    "No início, ele vivia sozinho, distante de tudo e todos.",
+    "Mas naquele dia... algo inesperado aconteceu.",
+    "Uma luz surgiu, mudando o destino daquele jovem.",
+    "Ele precisava seguir em frente, sem olhar para trás."
+];
+
 let sceneIndex = 0;
 let sceneTimer = 0;
-let sceneDuration = 3500; // 3.5 segundos cada quadro
+let sceneDuration = 4000; // ms por cena
+
+let letraIndex = 0;
+let textoAtual = "";
+let tempoTexto = 0;
+let velocidadeLetra = 30; // ms por letra
 
 function iniciarCutscene() {
     gameState = "cutscene";
+    scenes = [];
 
     for (let i = 1; i <= 4; i++) {
         let img = new Image();
@@ -82,11 +92,24 @@ function iniciarCutscene() {
 }
 
 function updateCutscene(dt) {
+    if (!cutsceneActive()) return;
+
     sceneTimer += dt;
+
+    // typewriter
+    tempoTexto += dt;
+    if (letraIndex < sceneTexts[sceneIndex].length && tempoTexto > velocidadeLetra) {
+        textoAtual += sceneTexts[sceneIndex][letraIndex];
+        letraIndex++;
+        tempoTexto = 0;
+    }
 
     if (sceneTimer >= sceneDuration) {
         sceneTimer = 0;
         sceneIndex++;
+        letraIndex = 0;
+        textoAtual = "";
+        tempoTexto = 0;
 
         if (sceneIndex >= scenes.length) {
             cutsceneMusic.pause();
@@ -100,9 +123,20 @@ function drawCutscene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     let img = scenes[sceneIndex];
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    // Caixa de legenda
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+    ctx.fillStyle = "white";
+    ctx.font = "22px Arial";
+    ctx.fillText(textoAtual, 20, canvas.height - 40);
 }
 
+function cutsceneActive() {
+    return sceneIndex < scenes.length;
+}
 
 //--------------------------------------
 // GAMEPLAY (MAPAS + PLAYER + PORTAS)
@@ -148,6 +182,8 @@ mapImg.src = maps[currentMap].image;
 
 function iniciarGameplay() {
     gameState = "play";
+    mapImg.src = maps[currentMap].image;
+    scenes = [];
 }
 
 let keys = {};
@@ -201,6 +237,7 @@ function updateGame() {
 }
 
 function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
 
     maps[currentMap].portas.forEach(p => {
@@ -213,7 +250,6 @@ function drawGame() {
 
     ctx.drawImage(player.sprite, player.x, player.y, player.width, player.height);
 }
-
 
 //--------------------------------------
 // LOOP PRINCIPAL
