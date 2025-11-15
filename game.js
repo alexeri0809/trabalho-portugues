@@ -71,12 +71,12 @@ let sceneTexts = [
 
 let sceneIndex = 0;
 let sceneTimer = 0;
-let sceneDuration = 4000; // ms por cena
+let sceneDuration = 4000;
 
 let letraIndex = 0;
 let textoAtual = "";
 let tempoTexto = 0;
-let velocidadeLetra = 30; // ms por letra
+let velocidadeLetra = 30;
 
 function iniciarCutscene() {
     gameState = "cutscene";
@@ -96,7 +96,6 @@ function updateCutscene(dt) {
 
     sceneTimer += dt;
 
-    // typewriter
     tempoTexto += dt;
     if (letraIndex < sceneTexts[sceneIndex].length && tempoTexto > velocidadeLetra) {
         textoAtual += sceneTexts[sceneIndex][letraIndex];
@@ -125,7 +124,6 @@ function drawCutscene() {
     let img = scenes[sceneIndex];
     if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    // Caixa de legenda
     ctx.fillStyle = "rgba(0,0,0,0.65)";
     ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
 
@@ -149,6 +147,7 @@ let player = {
 };
 player.sprite.src = "assets/player.png";
 
+// --- SISTEMA DE MAPAS ---
 let maps = {
     1: {
         image: "assets/mapa1.png",
@@ -177,19 +176,41 @@ let maps = {
 };
 
 let currentMap = 1;
+
+// --- SISTEMA DE CARREGAMENTO SEGURO ---
 let mapImg = new Image();
+let mapaCarregado = false;
+
+mapImg.onload = () => {
+    mapaCarregado = true;
+    console.log("Mapa carregado:", maps[currentMap].image);
+};
+
 mapImg.src = maps[currentMap].image;
 
 function iniciarGameplay() {
     gameState = "play";
-    mapImg.src = maps[currentMap].image;
+    loadMap(currentMap);
     scenes = [];
 }
 
+function loadMap(id) {
+    mapaCarregado = false;
+    mapImg = new Image();
+    mapImg.onload = () => mapaCarregado = true;
+    mapImg.src = maps[id].image;
+}
+
+//--------------------------------------
+// CONTROLES
+//--------------------------------------
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
+//--------------------------------------
+// COLISÃO
+//--------------------------------------
 function colisao(px, py, obj) {
     return (
         px < obj.x + obj.w &&
@@ -206,19 +227,24 @@ function podeMover(nx, ny) {
     return true;
 }
 
+//--------------------------------------
+// PORTAS (TROCAR DE MAPA COM SEGURANÇA)
+//--------------------------------------
 function interagirPorta() {
     for (let p of maps[currentMap].portas) {
         if (colisao(player.x, player.y, p)) {
             interactSound.play();
             currentMap = p.destino;
-            mapImg.src = maps[currentMap].image;
-
+            loadMap(currentMap);
             player.x = 200;
             player.y = 200;
         }
     }
 }
 
+//--------------------------------------
+// UPDATE GAME
+//--------------------------------------
 function updateGame() {
     let nx = player.x;
     let ny = player.y;
@@ -236,8 +262,21 @@ function updateGame() {
     if (keys["e"]) interagirPorta();
 }
 
+//--------------------------------------
+// DRAW GAME
+//--------------------------------------
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!mapaCarregado) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("A carregar mapa...", 20, 40);
+        return;
+    }
+
     ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
 
     maps[currentMap].portas.forEach(p => {
