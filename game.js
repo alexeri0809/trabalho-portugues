@@ -4,11 +4,11 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// CANVAS MAIOR PARA CENAS MAIS BONITAS
+// Tamanho ideal para pixel art
 canvas.width = 640;
 canvas.height = 480;
 
-let gameState = "story"; 
+let gameState = "story";
 
 
 // ---------------------------
@@ -17,31 +17,31 @@ let gameState = "story";
 let player = {
     x: 300,
     y: 300,
-    width: 32,   // personagem maior
-    height: 32,
+    width: 64,      // personagem GRANDE
+    height: 64,
     speed: 2,
     sprite: new Image()
 };
-player.sprite.src = "assets/player.png";
+player.sprite.src = "assets/player.png"; // substitui pela imagem que quiseres
 
 
 // ---------------------------
-// MAPAS
+// MAPA
 // ---------------------------
 let mapa = new Image();
 mapa.src = "assets/mapa1.png";
 
 
 // ---------------------------
-// TECLAS
+// TECLADO
 // ---------------------------
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup",   e => keys[e.key] = false);
+document.addEventListener("keyup", e => keys[e.key] = false);
 
 
 // ---------------------------
-// DIÁLOGOS
+// DIÁLOGO
 // ---------------------------
 let dialogActive = false;
 let dialogLines = [];
@@ -75,11 +75,10 @@ function nextDialog() {
 // CENAS DA HISTÓRIA (FULLSCREEN)
 // ---------------------------
 let storySceneImg = new Image();
-let storyScene = null;
 
 function showStoryScene(img, dialog = []) {
     gameState = "story";
-    storyScene = img;
+    storySceneImg = new Image();
     storySceneImg.src = img;
 
     if (dialog.length > 0) {
@@ -118,23 +117,29 @@ function drawFade() {
         fadeCallback = null;
     }
 
-    if (fadeAlpha <= 0) {
-        fadeDirection = 0;
-    }
+    if (fadeAlpha <= 0) fadeDirection = 0;
 }
 
 
 // ---------------------------
-// OBJETOS INTERATIVOS
+// OBJETOS INTERATIVOS (INVISÍVEIS)
 // ---------------------------
 let objetos = [
-    { x: 350, y: 200, w: 32, h: 32,
-      dialog: ["Um velho baú...", "Parece vazio."] }
+    {
+        x: 350,
+        y: 200,
+        w: 60,
+        h: 60,
+        dialog: [
+            "Um baú... mas não há nada dentro.",
+            "A sensação estranha permanece."
+        ]
+    }
 ];
 
 function playerNear(obj) {
-    return Math.abs(player.x - obj.x) < 60 &&
-           Math.abs(player.y - obj.y) < 60;
+    return Math.abs(player.x - obj.x) < 80 &&
+           Math.abs(player.y - obj.y) < 80;
 }
 
 
@@ -142,24 +147,19 @@ function playerNear(obj) {
 // UPDATE
 // ---------------------------
 function update() {
-
     if (dialogActive) return;
 
     if (gameState === "story") return;
 
     if (gameState === "play") {
-
         if (keys["ArrowUp"]) player.y -= player.speed;
         if (keys["ArrowDown"]) player.y += player.speed;
         if (keys["ArrowLeft"]) player.x -= player.speed;
         if (keys["ArrowRight"]) player.x += player.speed;
 
-        // Interação
         if (keys["e"]) {
             objetos.forEach(obj => {
-                if (playerNear(obj)) {
-                    showDialog(obj.dialog);
-                }
+                if (playerNear(obj)) showDialog(obj.dialog);
             });
         }
     }
@@ -172,29 +172,30 @@ function update() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // HISTÓRIA FULLSCREEN
-    if (gameState === "story" && storySceneImg) {
+    // História
+    if (gameState === "story") {
         ctx.drawImage(storySceneImg, 0, 0, canvas.width, canvas.height);
     }
 
-    // GAMEPLAY
+    // Gameplay
     if (gameState === "play") {
         ctx.drawImage(mapa, 0, 0, canvas.width, canvas.height);
 
         // Player
-        ctx.drawImage(player.sprite, player.x, player.y, player.width, player.height);
+        ctx.drawImage(
+            player.sprite,
+            player.x,
+            player.y,
+            player.width,
+            player.height
+        );
 
-        // Objetos
+        // Objetos invisíveis + Interagir
         objetos.forEach(obj => {
-            // desenhar objeto
-            ctx.fillStyle = "yellow";
-            ctx.fillRect(obj.x, obj.y, obj.w, obj.h);
-
-            // texto "Interagir"
             if (playerNear(obj)) {
-                ctx.font = "16px Arial";
+                ctx.font = "22px Arial";
                 ctx.fillStyle = "white";
-                ctx.fillText("Interagir", obj.x - 10, obj.y - 10);
+                ctx.fillText("Interagir", obj.x - 10, obj.y - 15);
             }
         });
     }
@@ -215,25 +216,25 @@ loop();
 
 
 // ---------------------------
-// HISTÓRIA INICIAL
+// HISTÓRIA INICIAL (exemplo)
 // ---------------------------
 setTimeout(() => {
     showStoryScene("assets/cena1.png", [
         "Era uma noite fria...",
-        "Tudo começou aqui."
+        "Tudo estava prestes a mudar."
     ]);
-}, 700);
+}, 500);
 
 setTimeout(() => {
     showStoryScene("assets/cena2.png", [
-        "Ele era só uma criança...",
-        "Mas algo mudaria sua vida..."
+        "O garoto estava sozinho.",
+        "Mas ele tinha um destino."
     ]);
-}, 6500);
+}, 5500);
 
 setTimeout(() => {
     startFadeOut(() => {
         gameState = "play";
         startFadeIn();
     });
-}, 11500);
+}, 11000);
