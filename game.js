@@ -58,56 +58,70 @@ const cutsceneData = [
 ];
 
 let cutsceneIndex = 0;
-let cutsceneTimer = 0;
 let letraIndex = 0;
 let mostrandoTexto = "";
-let cutsceneDuration = 4500;
-let velocidadeTexto = 35;
 let cutsceneImg = new Image();
 let cutsceneActive = true;
+let deltaAcumulado = 0;
+let velocidadeTexto = 35;
+let duracaoCena = 4500;
 
-// Carregar primeira imagem
-cutsceneImg.src = cutsceneData[0].img;
+// Carregar primeira imagem da cutscene
+cutsceneImg.src = cutsceneData[cutsceneIndex].img;
+cutsceneImg.onload = () => { /* imagem carregada */ };
 
 function updateCutscene(delta) {
-    cutsceneTimer += delta;
+    deltaAcumulado += delta;
 
+    // Typewriter
     if (letraIndex < cutsceneData[cutsceneIndex].texto.length) {
-        if (cutsceneTimer > velocidadeTexto) {
+        if (deltaAcumulado > velocidadeTexto) {
             mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
             letraIndex++;
-            cutsceneTimer = 0;
+            deltaAcumulado = 0;
         }
     }
 
-    if (cutsceneTimer >= cutsceneDuration) {
+    // Trocar de cena
+    if (deltaAcumulado > duracaoCena) {
         cutsceneIndex++;
-        cutsceneTimer = 0;
         letraIndex = 0;
         mostrandoTexto = "";
+        deltaAcumulado = 0;
 
         if (cutsceneIndex >= cutsceneData.length) {
+            // FIM DA CUTSCENE → mostra mapa
             cutsceneActive = false;
-            gameState = "gameplay";
+            gameState = "play";
+            canvas.style.display = "block";
             cutsceneMusic.pause();
             bgMusic.play();
             return;
         }
 
+        // Carregar próxima imagem
         cutsceneImg.src = cutsceneData[cutsceneIndex].img;
     }
 }
 
 function drawCutscene() {
+    // Fundo
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Imagem da cutscene
     ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
 
+    // Caixa de diálogo
     ctx.fillStyle = "rgba(0,0,0,0.65)";
     ctx.fillRect(0, canvas.height - 170, canvas.width, 170);
 
+    // Nome
     ctx.fillStyle = "white";
     ctx.font = "28px serif";
     ctx.fillText(cutsceneData[cutsceneIndex].nome, 40, canvas.height - 135);
 
+    // Texto
     ctx.font = "22px serif";
     ctx.fillText(mostrandoTexto, 40, canvas.height - 90);
 }
@@ -185,16 +199,16 @@ function drawGame() {
 //--------------------------------------
 let lastTime = 0;
 
-function gameLoop(timestamp) {
+function loop(timestamp) {
     let delta = timestamp - lastTime;
     lastTime = timestamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (cutsceneActive) { updateCutscene(delta); drawCutscene(); }
-    else if (gameState === "gameplay") { updatePlayer(); drawGame(); }
+    else if (gameState === "play") { updatePlayer(); drawGame(); }
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
 }
 
-gameLoop();
+loop();
