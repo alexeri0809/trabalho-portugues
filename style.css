@@ -1,51 +1,61 @@
-/* ----------- GERAL ----------- */
 body {
     margin: 0;
-    background: black;
+    background: #000;
     overflow: hidden;
-    font-family: Arial, sans-serif;
+    font-family: "Cinzel", serif;
 }
 
-canvas {
-    display: block;
-    margin: auto;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    border: 2px solid #fff;
-}
-
-/* ----------- CAIXA DE DIÁLOGO ----------- */
-#dialogBox {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
-    max-width: 900px;
-
-    padding: 18px;
-    background: rgba(0,0,0,0.85);
-    border: 3px solid white;
-    border-radius: 5px;
-
-    color: white;
-    font-size: 18px;
-    line-height: 22px;
-
-    text-shadow: 0 0 4px black;
-}
-
-.hidden {
-    display: none;
-}
-
-/* ----------- FADE PRETO ----------- */
-#fadeLayer {
+#menu {
     position: absolute;
-    top: 0;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: radial-gradient(circle at center, #0a0a16, #000);
+    animation: fadeIn 1.5s ease forwards;
+    z-index: 10;
+}
+
+#titulo {
+    color: #ffffff;
+    font-size: 48px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 15px #7aa8ff;
+}
+
+.menu-opcao {
+    color: #ffffff;
+    font-size: 26px;
+    margin: 12px 0;
+    cursor: pointer;
+    transition: 0.3s ease;
+    text-shadow: 0 0 6px #6f9aff;
+}
+
+.menu-opcao:hover {
+    transform: scale(1.1);
+    text-shadow: 0 0 15px #b6cdff;
+}
+
+#game {
+    display: none;
+    background-color: #000;
+    margin: auto;
+    position: absolute;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-    pointer-events: none;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+/* Fade */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }

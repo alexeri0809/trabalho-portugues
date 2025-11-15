@@ -2,19 +2,24 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Jogo Undertale Style</title>
+    <title>Teu Jogo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<canvas id="game"></canvas>
+    <!-- MENU -->
+    <div id="menu">
+        <div id="titulo">TEU JOGO</div>
 
-<!-- Dialog Box -->
-<div id="dialogBox" class="hidden">
-    <p id="dialogText"></p>
-</div>
+        <div class="menu-opcao" onclick="iniciarJogo()">INICIAR JOGO</div>
+        <div class="menu-opcao" onclick="abrirPersonagens()">PERSONAGENS</div>
+        <div class="menu-opcao" onclick="abrirConfig()">CONFIGURAÇÕES</div>
+        <div class="menu-opcao" onclick="sair()">SAIR</div>
+    </div>
 
-<script src="game.js"></script>
+    <!-- CANVAS DO JOGO -->
+    <canvas id="game"></canvas>
 
+    <script src="game.js"></script>
 </body>
 </html>

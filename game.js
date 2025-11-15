@@ -1,36 +1,25 @@
 //--------------------------------------
-// CONFIGURAÇÃO DO CANVAS
+// ESTADOS DO JOGO
 //--------------------------------------
+let gameState = "menu";
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-
 canvas.width = 640;
 canvas.height = 480;
 
 
 //--------------------------------------
-// ESTADOS DO JOGO
+// MÚSICAS
 //--------------------------------------
-let gameState = "cutscene";  
-let currentScene = 0;
-let cutsceneImages = [];
+let menuMusic = new Audio("assets/musica_menu.mp3");
+menuMusic.loop = true;
+menuMusic.volume = 0.5;
 
+let cutsceneMusic = new Audio("assets/musica_cutscene.mp3");
+cutsceneMusic.loop = true;
+cutsceneMusic.volume = 0.8;
 
-//--------------------------------------
-// CARREGAR CENAS INICIAIS
-//--------------------------------------
-const cenasTotais = 4;  // <-- ALTERA AQUI SE TIVERES MAIS CENAS
-
-for (let i = 1; i <= cenasTotais; i++) {
-    let img = new Image();
-    img.src = `assets/cenas/cena${i}.png`;
-    cutsceneImages.push(img);
-}
-
-
-//--------------------------------------
-// ÁUDIO
-//--------------------------------------
 let bgMusic = new Audio("assets/musica_fundo.mp3");
 bgMusic.loop = true;
 bgMusic.volume = 0.4;
@@ -38,33 +27,95 @@ bgMusic.volume = 0.4;
 let interactSound = new Audio("assets/efeito_interagir.wav");
 interactSound.volume = 0.6;
 
-let cutsceneMusic = new Audio("assets/musica_cutscene.mp3");
-cutsceneMusic.volume = 0.8;
-cutsceneMusic.loop = true;
-
-cutsceneMusic.play();
+menuMusic.play();
 
 
 //--------------------------------------
-// PLAYER
+// MENU FUNÇÕES
+//--------------------------------------
+function iniciarJogo() {
+    let menu = document.getElementById("menu");
+
+    menu.style.animation = "fadeOut 1s forwards";
+
+    setTimeout(() => {
+        menu.style.display = "none";
+        canvas.style.display = "block";
+
+        menuMusic.pause();
+
+        iniciarCutscene();
+    }, 1000);
+}
+
+function abrirPersonagens() {
+    alert("Mais tarde vamos colocar um menu de personagens com imagens. :)");
+}
+
+function abrirConfig() {
+    alert("Futuramente podemos colocar: volume, fullscreen, controles, etc.");
+}
+
+function sair() {
+    alert("Obrigado por jogar! (num jogo real, isto fecharia o programa)");
+}
+
+
+//--------------------------------------
+// CUTSCENE AUTOMÁTICA
+//--------------------------------------
+let scenes = [];
+let sceneIndex = 0;
+let sceneTimer = 0;
+let sceneDuration = 3500; // 3.5 segundos cada quadro
+
+function iniciarCutscene() {
+    gameState = "cutscene";
+
+    for (let i = 1; i <= 4; i++) {
+        let img = new Image();
+        img.src = `assets/cenas/cena${i}.png`;
+        scenes.push(img);
+    }
+
+    cutsceneMusic.play();
+}
+
+function updateCutscene(dt) {
+    sceneTimer += dt;
+
+    if (sceneTimer >= sceneDuration) {
+        sceneTimer = 0;
+        sceneIndex++;
+
+        if (sceneIndex >= scenes.length) {
+            cutsceneMusic.pause();
+            bgMusic.play();
+            iniciarGameplay();
+        }
+    }
+}
+
+function drawCutscene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let img = scenes[sceneIndex];
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+}
+
+
+//--------------------------------------
+// GAMEPLAY (MAPAS + PLAYER + PORTAS)
 //--------------------------------------
 let player = {
-    x: 200,
-    y: 200,
-    width: 64,
-    height: 64,
+    x: 200, y: 200,
+    width: 64, height: 64,
     speed: 2,
     sprite: new Image()
 };
 player.sprite.src = "assets/player.png";
 
-
-//--------------------------------------
-// MAPAS
-//--------------------------------------
-let currentMap = 1;
-
-let mapas = {
+let maps = {
     1: {
         image: "assets/mapa1.png",
         colliders: [
@@ -77,7 +128,6 @@ let mapas = {
             { x: 500, y: 200, w: 60, h: 80, destino: 2 }
         ]
     },
-
     2: {
         image: "assets/mapa2.png",
         colliders: [
@@ -92,22 +142,19 @@ let mapas = {
     }
 };
 
-let mapaAtualImg = new Image();
-mapaAtualImg.src = mapas[currentMap].image;
+let currentMap = 1;
+let mapImg = new Image();
+mapImg.src = maps[currentMap].image;
 
+function iniciarGameplay() {
+    gameState = "play";
+}
 
-//--------------------------------------
-// TECLAS
-//--------------------------------------
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-
-//--------------------------------------
-// COLISÃO
-//--------------------------------------
-function colisaoComRetangulo(px, py, obj) {
+function colisao(px, py, obj) {
     return (
         px < obj.x + obj.w &&
         px + player.width > obj.x &&
@@ -116,42 +163,26 @@ function colisaoComRetangulo(px, py, obj) {
     );
 }
 
-function podeMover(novoX, novoY) {
-    for (let c of mapas[currentMap].colliders) {
-        if (colisaoComRetangulo(novoX, novoY, c)) return false;
+function podeMover(nx, ny) {
+    for (let c of maps[currentMap].colliders) {
+        if (colisao(nx, ny, c)) return false;
     }
     return true;
 }
 
-
-//--------------------------------------
-// PORTAS
-//--------------------------------------
 function interagirPorta() {
-    for (let p of mapas[currentMap].portas) {
-        if (colisaoComRetangulo(player.x, player.y, p)) {
-
+    for (let p of maps[currentMap].portas) {
+        if (colisao(player.x, player.y, p)) {
             interactSound.play();
-
             currentMap = p.destino;
-            mapaAtualImg.src = mapas[currentMap].image;
+            mapImg.src = maps[currentMap].image;
 
-            if (currentMap === 1) {
-                player.x = 450;
-                player.y = 200;
-            }
-            if (currentMap === 2) {
-                player.x = 100;
-                player.y = 200;
-            }
+            player.x = 200;
+            player.y = 200;
         }
     }
 }
 
-
-//--------------------------------------
-// UPDATE NORMAL
-//--------------------------------------
 function updateGame() {
     let nx = player.x;
     let ny = player.y;
@@ -169,20 +200,14 @@ function updateGame() {
     if (keys["e"]) interagirPorta();
 }
 
-
-//--------------------------------------
-// DRAW NORMAL
-//--------------------------------------
 function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
 
-    ctx.drawImage(mapaAtualImg, 0, 0, canvas.width, canvas.height);
-
-    mapas[currentMap].portas.forEach(p => {
-        if (colisaoComRetangulo(player.x, player.y, p)) {
-            ctx.font = "22px Arial";
+    maps[currentMap].portas.forEach(p => {
+        if (colisao(player.x, player.y, p)) {
             ctx.fillStyle = "white";
-            ctx.fillText("Entrar (E)", p.x - 20, p.y - 10);
+            ctx.font = "22px Arial";
+            ctx.fillText("Interagir (E)", p.x - 15, p.y - 10);
         }
     });
 
@@ -191,41 +216,18 @@ function drawGame() {
 
 
 //--------------------------------------
-// CUTSCENE
-//--------------------------------------
-document.addEventListener("keydown", e => {
-    if (gameState === "cutscene" && e.key === "Enter") {
-        currentScene++;
-
-        if (currentScene >= cutsceneImages.length) {
-            gameState = "play";
-            cutsceneMusic.pause();
-            bgMusic.play();
-        }
-    }
-});
-
-function drawCutscene() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let img = cutsceneImages[currentScene];
-
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "white";
-    ctx.font = "20px Arial";
-    ctx.fillText("Pressiona ENTER para continuar", 10, 460);
-}
-
-
-//--------------------------------------
 // LOOP PRINCIPAL
 //--------------------------------------
-function loop() {
+let lastTime = 0;
+
+function loop(timestamp) {
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
 
     if (gameState === "cutscene") {
+        updateCutscene(dt);
         drawCutscene();
-    } else {
+    } else if (gameState === "play") {
         updateGame();
         drawGame();
     }
