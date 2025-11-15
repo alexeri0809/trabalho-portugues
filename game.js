@@ -19,14 +19,9 @@ function iniciarJogo() {
     setTimeout(() => {
         menu.style.display = "none";
         canvas.style.display = "block";
-
         iniciarCutscene();
     }, 1000);
 }
-
-function abrirPersonagens() { alert("Menu de personagens"); }
-function abrirConfig() { alert("Configurações"); }
-function sair() { alert("Saindo do jogo"); }
 
 //--------------------------------------
 // CUTSCENE AUTOMÁTICA COM LEGENDAS
@@ -51,6 +46,7 @@ let velocidadeLetra = 30; // ms por letra
 function iniciarCutscene() {
     gameState = "cutscene";
     scenes = [];
+
     for (let i = 1; i <= 4; i++) {
         let img = new Image();
         img.src = `assets/cenas/cena${i}.png`;
@@ -90,7 +86,7 @@ function updateCutscene(dt) {
 function drawCutscene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // fundo preto caso a imagem não carregue
+    // fundo preto caso imagem não carregue
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -115,8 +111,16 @@ let player = { x:200, y:200, width:64, height:64, speed:2, sprite: new Image() }
 player.sprite.src = "assets/player.png";
 
 let maps = {
-    1: { image:"assets/mapa1.png", colliders:[{x:0,y:0,w:640,h:10},{x:0,y:470,w:640,h:10},{x:0,y:0,w:10,h:480},{x:630,y:0,w:10,h:480}], portas:[{x:500,y:200,w:60,h:80,destino:2}] },
-    2: { image:"assets/mapa2.png", colliders:[{x:0,y:0,w:640,h:10},{x:0,y:470,w:640,h:10},{x:0,y:0,w:10,h:480},{x:630,y:0,w:10,h:480}], portas:[{x:50,y:200,w:60,h:80,destino:1}] }
+    1: {
+        image:"assets/mapa1.png",
+        colliders:[{x:0,y:0,w:640,h:10},{x:0,y:470,w:640,h:10},{x:0,y:0,w:10,h:480},{x:630,y:0,w:10,h:480}],
+        portas:[{x:500,y:200,w:60,h:80,destino:2}]
+    },
+    2: {
+        image:"assets/mapa2.png",
+        colliders:[{x:0,y:0,w:640,h:10},{x:0,y:470,w:640,h:10},{x:0,y:0,w:10,h:480},{x:630,y:0,w:10,h:480}],
+        portas:[{x:50,y:200,w:60,h:80,destino:1}]
+    }
 };
 
 let currentMap = 1;
@@ -158,8 +162,7 @@ function interagirPorta() {
 }
 
 function updateGame() {
-    let nx = player.x;
-    let ny = player.y;
+    let nx = player.x, ny = player.y;
 
     if (keys["ArrowUp"]) ny -= player.speed;
     if (keys["ArrowDown"]) ny += player.speed;
@@ -173,7 +176,7 @@ function updateGame() {
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // fundo caso imagem não carregue
+    // fundo temporário caso imagem não carregue
     ctx.fillStyle = "gray";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -198,13 +201,8 @@ function loop(timestamp) {
     let dt = timestamp - lastTime;
     lastTime = timestamp;
 
-    if (gameState === "cutscene") {
-        updateCutscene(dt);
-        drawCutscene();
-    } else if (gameState === "play") {
-        updateGame();
-        drawGame();
-    }
+    if (gameState === "cutscene") { updateCutscene(dt); drawCutscene(); }
+    else if (gameState === "play") { updateGame(); drawGame(); }
 
     requestAnimationFrame(loop);
 }
