@@ -57,6 +57,9 @@ const cutsceneData = [
     { img: "assets/cenas/cena4.png", nome: "Narrador", texto: "Ele precisava seguir em frente, sem olhar para trás." }
 ];
 
+//--------------------------------------
+// CUTSCENE DEFINITIVA
+//--------------------------------------
 let cutsceneIndex = 0;
 let letraIndex = 0;
 let mostrandoTexto = "";
@@ -69,19 +72,19 @@ let duracaoCena = 4500;   // ms por cena
 let tempoTexto = 0;
 let tempoCena = 0;
 
+// Inicia cutscene
 function iniciarCutscene() {
     cutsceneImg.src = cutsceneData[cutsceneIndex].img;
-    cutsceneImg.onload = () => {
-        // start loop se quiser garantir que a primeira imagem carregou
-        requestAnimationFrame(loop);
-    };
 }
 
+// Atualiza cutscene
 function updateCutscene(delta) {
-    // Atualiza tempo da cena
+    if (!cutsceneActive) return;
+
+    // Atualiza tempo total da cena
     tempoCena += delta;
 
-    // Atualiza texto (typewriter)
+    // Atualiza efeito typewriter
     tempoTexto += delta;
     if (letraIndex < cutsceneData[cutsceneIndex].texto.length && tempoTexto > velocidadeTexto) {
         mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
@@ -89,7 +92,7 @@ function updateCutscene(delta) {
         tempoTexto = 0;
     }
 
-    // Troca de cena
+    // Troca de cena após duracaoCena
     if (tempoCena > duracaoCena) {
         cutsceneIndex++;
         letraIndex = 0;
@@ -98,6 +101,7 @@ function updateCutscene(delta) {
         tempoCena = 0;
 
         if (cutsceneIndex >= cutsceneData.length) {
+            // FIM DA CUTSCENE → gameplay
             cutsceneActive = false;
             gameState = "play";
             canvas.style.display = "block";
@@ -106,17 +110,16 @@ function updateCutscene(delta) {
             return;
         }
 
-        // Carrega próxima imagem
+        // Troca para próxima imagem
         cutsceneImg.src = cutsceneData[cutsceneIndex].img;
     }
 }
 
+// Desenha cutscene
 function drawCutscene() {
-    // Fundo
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Desenha imagem só se carregou
     if (cutsceneImg.complete) {
         ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
     }
@@ -134,6 +137,7 @@ function drawCutscene() {
     ctx.font = "22px serif";
     ctx.fillText(mostrandoTexto, 40, canvas.height - 90);
 }
+
 
 //--------------------------------------
 // GAMEPLAY (MAPAS + PLAYER + PORTAS)
