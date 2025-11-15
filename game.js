@@ -62,35 +62,36 @@ let letraIndex = 0;
 let mostrandoTexto = "";
 let cutsceneImg = new Image();
 let cutsceneActive = true;
-let deltaAcumulado = 0;
-let velocidadeTexto = 35;
-let duracaoCena = 4500;
 
-// Carregar primeira imagem da cutscene
-cutsceneImg.src = cutsceneData[cutsceneIndex].img;
-cutsceneImg.onload = () => { /* imagem carregada */ };
+let tempoTexto = 0;       // controla a velocidade do typewriter
+let tempoCena = 0;        // controla a duração da cena
+
+let velocidadeTexto = 35; // ms por letra
+let duracaoCena = 4500;   // ms por cena
+
+cutsceneImg.src = cutsceneData[0].img;
 
 function updateCutscene(delta) {
-    deltaAcumulado += delta;
-
-    // Typewriter
+    // Atualiza o texto lentamente (typewriter)
     if (letraIndex < cutsceneData[cutsceneIndex].texto.length) {
-        if (deltaAcumulado > velocidadeTexto) {
+        tempoTexto += delta;
+        if (tempoTexto > velocidadeTexto) {
             mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
             letraIndex++;
-            deltaAcumulado = 0;
+            tempoTexto = 0;
         }
     }
 
-    // Trocar de cena
-    if (deltaAcumulado > duracaoCena) {
+    // Atualiza o tempo total da cena
+    tempoCena += delta;
+    if (tempoCena > duracaoCena) {
         cutsceneIndex++;
         letraIndex = 0;
         mostrandoTexto = "";
-        deltaAcumulado = 0;
+        tempoTexto = 0;
+        tempoCena = 0;
 
         if (cutsceneIndex >= cutsceneData.length) {
-            // FIM DA CUTSCENE → mostra mapa
             cutsceneActive = false;
             gameState = "play";
             canvas.style.display = "block";
@@ -99,10 +100,10 @@ function updateCutscene(delta) {
             return;
         }
 
-        // Carregar próxima imagem
         cutsceneImg.src = cutsceneData[cutsceneIndex].img;
     }
 }
+
 
 function drawCutscene() {
     // Fundo
