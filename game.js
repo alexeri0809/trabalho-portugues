@@ -1,240 +1,195 @@
-// ---------------------------
+//--------------------------------------
 // CONFIGURAÇÃO DO CANVAS
-// ---------------------------
+//--------------------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Tamanho ideal para pixel art
 canvas.width = 640;
 canvas.height = 480;
 
-let gameState = "story";
+let gameState = "play";
 
 
-// ---------------------------
+//--------------------------------------
+// ÁUDIO
+//--------------------------------------
+let bgMusic = new Audio("assets/musica_fundo.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
+
+let interactSound = new Audio("assets/efeito_interagir.wav");
+interactSound.volume = 0.6;
+
+bgMusic.play();
+
+
+//--------------------------------------
 // PLAYER
-// ---------------------------
+//--------------------------------------
 let player = {
-    x: 300,
-    y: 300,
-    width: 64,      // personagem GRANDE
+    x: 200,
+    y: 200,
+    width: 64,
     height: 64,
     speed: 2,
     sprite: new Image()
 };
-player.sprite.src = "assets/player.png"; // substitui pela imagem que quiseres
+player.sprite.src = "assets/player.png";
 
 
-// ---------------------------
-// MAPA
-// ---------------------------
-let mapa = new Image();
-mapa.src = "assets/mapa1.png";
+//--------------------------------------
+// MAPAS + PORTAS + COLISÕES
+//--------------------------------------
+let currentMap = 1;
+
+let mapas = {
+    1: {
+        image: "assets/mapa1.png",
+
+        // colisões
+        colliders: [
+            { x: 0, y: 0, w: 640, h: 10 },     
+            { x: 0, y: 470, w: 640, h: 10 },   
+            { x: 0, y: 0, w: 10, h: 480 },     
+            { x: 630, y: 0, w: 10, h: 480 }    
+        ],
+
+        // portas
+        portas: [
+            { x: 500, y: 200, w: 60, h: 80, destino: 2 }
+        ]
+    },
+
+    2: {
+        image: "assets/mapa2.png",
+
+        colliders: [
+            { x: 0, y: 0, w: 640, h: 10 },
+            { x: 0, y: 470, w: 640, h: 10 },
+            { x: 0, y: 0, w: 10, h: 480 },
+            { x: 630, y: 0, w: 10, h: 480 }
+        ],
+
+        portas: [
+            { x: 50, y: 200, w: 60, h: 80, destino: 1 }
+        ]
+    }
+};
+
+let mapaAtualImg = new Image();
+mapaAtualImg.src = mapas[currentMap].image;
 
 
-// ---------------------------
-// TECLADO
-// ---------------------------
+//--------------------------------------
+// TECLAS
+//--------------------------------------
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
 
-// ---------------------------
-// DIÁLOGO
-// ---------------------------
-let dialogActive = false;
-let dialogLines = [];
-let dialogIndex = 0;
-
-function showDialog(lines) {
-    dialogActive = true;
-    dialogLines = lines;
-    dialogIndex = 0;
-
-    dialogBox.classList.remove("hidden");
-    dialogText.innerText = dialogLines[0];
+//--------------------------------------
+// COLISÃO BÁSICA
+//--------------------------------------
+function colisaoComRetangulo(px, py, obj) {
+    return (
+        px < obj.x + obj.w &&
+        px + player.width > obj.x &&
+        py < obj.y + obj.h &&
+        py + player.height > obj.y
+    );
 }
 
-document.addEventListener("keydown", (e) => {
-    if (e.key === " " && dialogActive) nextDialog();
-});
+// impede atravessar paredes
+function podeMover(novoX, novoY) {
+    let col = mapas[currentMap].colliders;
 
-function nextDialog() {
-    dialogIndex++;
-    if (dialogIndex >= dialogLines.length) {
-        dialogActive = false;
-        dialogBox.classList.add("hidden");
-        return;
+    for (let c of col) {
+        if (colisaoComRetangulo(novoX, novoY, c)) {
+            return false;
+        }
     }
-    dialogText.innerText = dialogLines[dialogIndex];
+    return true;
 }
 
 
-// ---------------------------
-// CENAS DA HISTÓRIA (FULLSCREEN)
-// ---------------------------
-let storySceneImg = new Image();
+//--------------------------------------
+// PORTAS — TROCAR DE MAPA
+//--------------------------------------
+function interagirPorta() {
+    let portas = mapas[currentMap].portas;
 
-function showStoryScene(img, dialog = []) {
-    gameState = "story";
-    storySceneImg = new Image();
-    storySceneImg.src = img;
+    for (let p of portas) {
+        if (colisaoComRetangulo(player.x, player.y, p)) {
 
-    if (dialog.length > 0) {
-        showDialog(dialog);
-    }
-}
+            interactSound.play();
 
+            currentMap = p.destino;
+            mapaAtualImg.src = mapas[currentMap].image;
 
-// ---------------------------
-// FADE
-// ---------------------------
-let fadeAlpha = 0;
-let fadeDirection = 0;
-let fadeCallback = null;
-
-function startFadeOut(callback) {
-    fadeDirection = 0.03;
-    fadeCallback = callback;
-}
-
-function startFadeIn() {
-    fadeDirection = -0.03;
-}
-
-function drawFade() {
-    if (fadeDirection === 0) return;
-
-    fadeAlpha += fadeDirection;
-
-    ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    if (fadeAlpha >= 1) {
-        fadeDirection = 0;
-        if (fadeCallback) fadeCallback();
-        fadeCallback = null;
-    }
-
-    if (fadeAlpha <= 0) fadeDirection = 0;
-}
-
-
-// ---------------------------
-// OBJETOS INTERATIVOS (INVISÍVEIS)
-// ---------------------------
-let objetos = [
-    {
-        x: 350,
-        y: 200,
-        w: 60,
-        h: 60,
-        dialog: [
-            "Um baú... mas não há nada dentro.",
-            "A sensação estranha permanece."
-        ]
-    }
-];
-
-function playerNear(obj) {
-    return Math.abs(player.x - obj.x) < 80 &&
-           Math.abs(player.y - obj.y) < 80;
-}
-
-
-// ---------------------------
-// UPDATE
-// ---------------------------
-function update() {
-    if (dialogActive) return;
-
-    if (gameState === "story") return;
-
-    if (gameState === "play") {
-        if (keys["ArrowUp"]) player.y -= player.speed;
-        if (keys["ArrowDown"]) player.y += player.speed;
-        if (keys["ArrowLeft"]) player.x -= player.speed;
-        if (keys["ArrowRight"]) player.x += player.speed;
-
-        if (keys["e"]) {
-            objetos.forEach(obj => {
-                if (playerNear(obj)) showDialog(obj.dialog);
-            });
+            // posição ao entrar no mapa novo
+            if (currentMap === 1) {
+                player.x = 450;
+                player.y = 200;
+            }
+            if (currentMap === 2) {
+                player.x = 100;
+                player.y = 200;
+            }
         }
     }
 }
 
 
-// ---------------------------
-// DRAW
-// ---------------------------
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+//--------------------------------------
+// UPDATE
+//--------------------------------------
+function update() {
+    let novoX = player.x;
+    let novoY = player.y;
 
-    // História
-    if (gameState === "story") {
-        ctx.drawImage(storySceneImg, 0, 0, canvas.width, canvas.height);
+    if (keys["ArrowUp"]) novoY -= player.speed;
+    if (keys["ArrowDown"]) novoY += player.speed;
+    if (keys["ArrowLeft"]) novoX -= player.speed;
+    if (keys["ArrowRight"]) novoX += player.speed;
+
+    if (podeMover(novoX, novoY)) {
+        player.x = novoX;
+        player.y = novoY;
     }
 
-    // Gameplay
-    if (gameState === "play") {
-        ctx.drawImage(mapa, 0, 0, canvas.width, canvas.height);
-
-        // Player
-        ctx.drawImage(
-            player.sprite,
-            player.x,
-            player.y,
-            player.width,
-            player.height
-        );
-
-        // Objetos invisíveis + Interagir
-        objetos.forEach(obj => {
-            if (playerNear(obj)) {
-                ctx.font = "22px Arial";
-                ctx.fillStyle = "white";
-                ctx.fillText("Interagir", obj.x - 10, obj.y - 15);
-            }
-        });
-    }
-
-    drawFade();
+    if (keys["e"]) interagirPorta();
 }
 
 
-// ---------------------------
+//--------------------------------------
+// DRAW
+//--------------------------------------
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(mapaAtualImg, 0, 0, canvas.width, canvas.height);
+
+    // portas invisíveis + mostrar "Entrar"
+    mapas[currentMap].portas.forEach(p => {
+
+        if (colisaoComRetangulo(player.x, player.y, p)) {
+            ctx.font = "22px Arial";
+            ctx.fillStyle = "white";
+            ctx.fillText("Entrar (E)", p.x - 20, p.y - 10);
+        }
+    });
+
+    ctx.drawImage(player.sprite, player.x, player.y, player.width, player.height);
+}
+
+
+//--------------------------------------
 // LOOP
-// ---------------------------
+//--------------------------------------
 function loop() {
     update();
     draw();
     requestAnimationFrame(loop);
 }
 loop();
-
-
-// ---------------------------
-// HISTÓRIA INICIAL (exemplo)
-// ---------------------------
-setTimeout(() => {
-    showStoryScene("assets/cena1.png", [
-        "Era uma noite fria...",
-        "Tudo estava prestes a mudar."
-    ]);
-}, 500);
-
-setTimeout(() => {
-    showStoryScene("assets/cena2.png", [
-        "O garoto estava sozinho.",
-        "Mas ele tinha um destino."
-    ]);
-}, 5500);
-
-setTimeout(() => {
-    startFadeOut(() => {
-        gameState = "play";
-        startFadeIn();
-    });
-}, 11000);
