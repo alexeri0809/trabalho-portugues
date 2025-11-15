@@ -184,6 +184,10 @@ function iniciarGameplay() {
     gameState = "play";
     mapImg.src = maps[currentMap].image;
     scenes = [];
+    textoAtual = "";
+    sceneIndex = 0;
+    sceneTimer = 0;
+    letraIndex = 0;
 }
 
 let keys = {};
