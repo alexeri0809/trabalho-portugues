@@ -26,7 +26,7 @@ bgMusic.volume = 0.4;
 let interactSound = new Audio("assets/efeito_interagir.wav");
 interactSound.volume = 0.6;
 
-menuMusic.play();
+//menuMusic.play();
 
 //--------------------------------------
 // MENU FUNÇÕES
@@ -88,7 +88,7 @@ function iniciarCutscene() {
         scenes.push(img);
     }
 
-    cutsceneMusic.play();
+    //cutsceneMusic.play();
 }
 
 function updateCutscene(dt) {
@@ -113,7 +113,7 @@ function updateCutscene(dt) {
 
         if (sceneIndex >= scenes.length) {
             cutsceneMusic.pause();
-            bgMusic.play();
+            //bgMusic.play();
             iniciarGameplay();
         }
     }
@@ -213,7 +213,7 @@ function podeMover(nx, ny) {
 function interagirPorta() {
     for (let p of maps[currentMap].portas) {
         if (colisao(player.x, player.y, p)) {
-            interactSound.play();
+            //interactSound.play();
             currentMap = p.destino;
             mapImg.src = maps[currentMap].image;
 
