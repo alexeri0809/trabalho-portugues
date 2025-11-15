@@ -32,14 +32,16 @@ menuMusic.play();
 // MENU FUNÇÕES
 //--------------------------------------
 function iniciarJogo() {
-    document.getElementById("menu").style.display = "none";
-    canvas.style.display = "block";
-    menuMusic.pause();
-    cutsceneActive = true;
-    iniciarCutscene();
-    cutsceneMusic.play();
-}
+    let menu = document.getElementById("menu");
+    menu.style.animation = "fadeOut 1s forwards";
 
+    setTimeout(() => {
+        menu.style.display = "none";
+        canvas.style.display = "block";
+        menuMusic.pause();
+        iniciarCutscene();
+    }, 1000);
+}
 
 function abrirPersonagens() { alert("Menu de personagens ainda não implementado."); }
 function abrirConfig() { alert("Configurações ainda não implementadas."); }
@@ -55,87 +57,60 @@ const cutsceneData = [
     { img: "assets/cenas/cena4.png", nome: "Narrador", texto: "Ele precisava seguir em frente, sem olhar para trás." }
 ];
 
-//--------------------------------------
-// CUTSCENE DEFINITIVA
-//--------------------------------------
 let cutsceneIndex = 0;
+let cutsceneTimer = 0;
 let letraIndex = 0;
 let mostrandoTexto = "";
+let cutsceneDuration = 4500;
+let velocidadeTexto = 35;
 let cutsceneImg = new Image();
 let cutsceneActive = true;
 
-let velocidadeTexto = 35; // ms por letra
-let duracaoCena = 4500;   // ms por cena
+// Carregar primeira imagem
+cutsceneImg.src = cutsceneData[0].img;
 
-let tempoTexto = 0;
-let tempoCena = 0;
-
-// Inicia cutscene
-function iniciarCutscene() {
-    cutsceneImg.src = cutsceneData[cutsceneIndex].img;
-}
-
-// Atualiza cutscene
 function updateCutscene(delta) {
-    if (!cutsceneActive) return;
+    cutsceneTimer += delta;
 
-    // Atualiza tempo total da cena
-    tempoCena += delta;
-
-    // Atualiza efeito typewriter
-    tempoTexto += delta;
-    if (letraIndex < cutsceneData[cutsceneIndex].texto.length && tempoTexto > velocidadeTexto) {
-        mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
-        letraIndex++;
-        tempoTexto = 0;
+    if (letraIndex < cutsceneData[cutsceneIndex].texto.length) {
+        if (cutsceneTimer > velocidadeTexto) {
+            mostrandoTexto += cutsceneData[cutsceneIndex].texto[letraIndex];
+            letraIndex++;
+            cutsceneTimer = 0;
+        }
     }
 
-    // Troca de cena após duracaoCena
-    if (tempoCena > duracaoCena) {
+    if (cutsceneTimer >= cutsceneDuration) {
         cutsceneIndex++;
+        cutsceneTimer = 0;
         letraIndex = 0;
         mostrandoTexto = "";
-        tempoTexto = 0;
-        tempoCena = 0;
 
         if (cutsceneIndex >= cutsceneData.length) {
-            // FIM DA CUTSCENE → gameplay
             cutsceneActive = false;
-            gameState = "play";
-            canvas.style.display = "block";
+            gameState = "gameplay";
             cutsceneMusic.pause();
             bgMusic.play();
             return;
         }
 
-        // Troca para próxima imagem
         cutsceneImg.src = cutsceneData[cutsceneIndex].img;
     }
 }
 
-// Desenha cutscene
 function drawCutscene() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
 
-    if (cutsceneImg.complete) {
-        ctx.drawImage(cutsceneImg, 0, 0, canvas.width, canvas.height);
-    }
-
-    // Caixa de diálogo
     ctx.fillStyle = "rgba(0,0,0,0.65)";
     ctx.fillRect(0, canvas.height - 170, canvas.width, 170);
 
-    // Nome
     ctx.fillStyle = "white";
     ctx.font = "28px serif";
     ctx.fillText(cutsceneData[cutsceneIndex].nome, 40, canvas.height - 135);
 
-    // Texto
     ctx.font = "22px serif";
     ctx.fillText(mostrandoTexto, 40, canvas.height - 90);
 }
-
 
 //--------------------------------------
 // GAMEPLAY (MAPAS + PLAYER + PORTAS)
@@ -210,25 +185,16 @@ function drawGame() {
 //--------------------------------------
 let lastTime = 0;
 
-function loop(timestamp) {
+function gameLoop(timestamp) {
     let delta = timestamp - lastTime;
     lastTime = timestamp;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (cutsceneActive) {
-        updateCutscene(delta);
-        drawCutscene();
-    } else if (gameState === "play") {
-        updatePlayer();
-        drawGame();
-    }
+    if (cutsceneActive) { updateCutscene(delta); drawCutscene(); }
+    else if (gameState === "gameplay") { updatePlayer(); drawGame(); }
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(gameLoop);
 }
 
-// Começa o loop
-requestAnimationFrame(loop);
-
-
-loop();
+gameLoop();
