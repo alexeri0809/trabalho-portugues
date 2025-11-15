@@ -7,7 +7,25 @@ const ctx = canvas.getContext("2d");
 canvas.width = 640;
 canvas.height = 480;
 
-let gameState = "play";
+
+//--------------------------------------
+// ESTADOS DO JOGO
+//--------------------------------------
+let gameState = "cutscene";  
+let currentScene = 0;
+let cutsceneImages = [];
+
+
+//--------------------------------------
+// CARREGAR CENAS INICIAIS
+//--------------------------------------
+const cenasTotais = 4;  // <-- ALTERA AQUI SE TIVERES MAIS CENAS
+
+for (let i = 1; i <= cenasTotais; i++) {
+    let img = new Image();
+    img.src = `assets/cenas/cena${i}.png`;
+    cutsceneImages.push(img);
+}
 
 
 //--------------------------------------
@@ -20,7 +38,11 @@ bgMusic.volume = 0.4;
 let interactSound = new Audio("assets/efeito_interagir.wav");
 interactSound.volume = 0.6;
 
-bgMusic.play();
+let cutsceneMusic = new Audio("assets/musica_cutscene.mp3");
+cutsceneMusic.volume = 0.8;
+cutsceneMusic.loop = true;
+
+cutsceneMusic.play();
 
 
 //--------------------------------------
@@ -38,23 +60,19 @@ player.sprite.src = "assets/player.png";
 
 
 //--------------------------------------
-// MAPAS + PORTAS + COLISÕES
+// MAPAS
 //--------------------------------------
 let currentMap = 1;
 
 let mapas = {
     1: {
         image: "assets/mapa1.png",
-
-        // colisões
         colliders: [
-            { x: 0, y: 0, w: 640, h: 10 },     
-            { x: 0, y: 470, w: 640, h: 10 },   
-            { x: 0, y: 0, w: 10, h: 480 },     
-            { x: 630, y: 0, w: 10, h: 480 }    
+            { x: 0, y: 0, w: 640, h: 10 },
+            { x: 0, y: 470, w: 640, h: 10 },
+            { x: 0, y: 0, w: 10, h: 480 },
+            { x: 630, y: 0, w: 10, h: 480 }
         ],
-
-        // portas
         portas: [
             { x: 500, y: 200, w: 60, h: 80, destino: 2 }
         ]
@@ -62,14 +80,12 @@ let mapas = {
 
     2: {
         image: "assets/mapa2.png",
-
         colliders: [
             { x: 0, y: 0, w: 640, h: 10 },
             { x: 0, y: 470, w: 640, h: 10 },
             { x: 0, y: 0, w: 10, h: 480 },
             { x: 630, y: 0, w: 10, h: 480 }
         ],
-
         portas: [
             { x: 50, y: 200, w: 60, h: 80, destino: 1 }
         ]
@@ -89,7 +105,7 @@ document.addEventListener("keyup", e => keys[e.key] = false);
 
 
 //--------------------------------------
-// COLISÃO BÁSICA
+// COLISÃO
 //--------------------------------------
 function colisaoComRetangulo(px, py, obj) {
     return (
@@ -100,26 +116,19 @@ function colisaoComRetangulo(px, py, obj) {
     );
 }
 
-// impede atravessar paredes
 function podeMover(novoX, novoY) {
-    let col = mapas[currentMap].colliders;
-
-    for (let c of col) {
-        if (colisaoComRetangulo(novoX, novoY, c)) {
-            return false;
-        }
+    for (let c of mapas[currentMap].colliders) {
+        if (colisaoComRetangulo(novoX, novoY, c)) return false;
     }
     return true;
 }
 
 
 //--------------------------------------
-// PORTAS — TROCAR DE MAPA
+// PORTAS
 //--------------------------------------
 function interagirPorta() {
-    let portas = mapas[currentMap].portas;
-
-    for (let p of portas) {
+    for (let p of mapas[currentMap].portas) {
         if (colisaoComRetangulo(player.x, player.y, p)) {
 
             interactSound.play();
@@ -127,7 +136,6 @@ function interagirPorta() {
             currentMap = p.destino;
             mapaAtualImg.src = mapas[currentMap].image;
 
-            // posição ao entrar no mapa novo
             if (currentMap === 1) {
                 player.x = 450;
                 player.y = 200;
@@ -142,20 +150,20 @@ function interagirPorta() {
 
 
 //--------------------------------------
-// UPDATE
+// UPDATE NORMAL
 //--------------------------------------
-function update() {
-    let novoX = player.x;
-    let novoY = player.y;
+function updateGame() {
+    let nx = player.x;
+    let ny = player.y;
 
-    if (keys["ArrowUp"]) novoY -= player.speed;
-    if (keys["ArrowDown"]) novoY += player.speed;
-    if (keys["ArrowLeft"]) novoX -= player.speed;
-    if (keys["ArrowRight"]) novoX += player.speed;
+    if (keys["ArrowUp"]) ny -= player.speed;
+    if (keys["ArrowDown"]) ny += player.speed;
+    if (keys["ArrowLeft"]) nx -= player.speed;
+    if (keys["ArrowRight"]) nx += player.speed;
 
-    if (podeMover(novoX, novoY)) {
-        player.x = novoX;
-        player.y = novoY;
+    if (podeMover(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
     }
 
     if (keys["e"]) interagirPorta();
@@ -163,16 +171,14 @@ function update() {
 
 
 //--------------------------------------
-// DRAW
+// DRAW NORMAL
 //--------------------------------------
-function draw() {
+function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(mapaAtualImg, 0, 0, canvas.width, canvas.height);
 
-    // portas invisíveis + mostrar "Entrar"
     mapas[currentMap].portas.forEach(p => {
-
         if (colisaoComRetangulo(player.x, player.y, p)) {
             ctx.font = "22px Arial";
             ctx.fillStyle = "white";
@@ -185,11 +191,46 @@ function draw() {
 
 
 //--------------------------------------
-// LOOP
+// CUTSCENE
+//--------------------------------------
+document.addEventListener("keydown", e => {
+    if (gameState === "cutscene" && e.key === "Enter") {
+        currentScene++;
+
+        if (currentScene >= cutsceneImages.length) {
+            gameState = "play";
+            cutsceneMusic.pause();
+            bgMusic.play();
+        }
+    }
+});
+
+function drawCutscene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let img = cutsceneImages[currentScene];
+
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText("Pressiona ENTER para continuar", 10, 460);
+}
+
+
+//--------------------------------------
+// LOOP PRINCIPAL
 //--------------------------------------
 function loop() {
-    update();
-    draw();
+
+    if (gameState === "cutscene") {
+        drawCutscene();
+    } else {
+        updateGame();
+        drawGame();
+    }
+
     requestAnimationFrame(loop);
 }
+
 loop();
