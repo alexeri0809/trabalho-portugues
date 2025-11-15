@@ -2,39 +2,23 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Jogo</title>
+    <title>Teu Jogo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- MENU PRINCIPAL -->
-    <div id="menu" class="menu">
-        <h1>O Meu Jogo</h1>
-        <button onclick="iniciarJogo()">Iniciar</button>
-        <button onclick="abrirPersonagens()">Personagens</button>
-        <button onclick="abrirConfig()">Configurações</button>
-        <button onclick="sair()">Sair</button>
+    <!-- MENU -->
+    <div id="menu">
+        <div id="titulo">TEU JOGO</div>
+
+        <div class="menu-opcao" onclick="iniciarJogo()">INICIAR JOGO</div>
+        <div class="menu-opcao" onclick="abrirPersonagens()">PERSONAGENS</div>
+        <div class="menu-opcao" onclick="abrirConfig()">CONFIGURAÇÕES</div>
+        <div class="menu-opcao" onclick="sair()">SAIR</div>
     </div>
 
-    <!-- MENU DE PERSONAGENS -->
-    <div id="menuPersonagens" class="subMenu">
-        <h2>Personagens</h2>
-
-        <div class="personagem">
-            <img src="assets/player.png" alt="Protagonista">
-            <p><b>Protagonista</b> — Um jovem misterioso com um destino desconhecido.</p>
-        </div>
-
-        <div class="personagem">
-            <img src="assets/personagem2.png" alt="Personagem 2">
-            <p><b>Personagem 2</b> — Adicionar descrição futuramente.</p>
-        </div>
-
-        <button onclick="fecharPersonagens()">Voltar</button>
-    </div>
-
-    <!-- CANVAS DO JOGO -->
-    <canvas id="game" style="display:none;"></canvas>
+    <!-- CANVAS -->
+    <canvas id="game"></canvas>
 
     <script src="game.js"></script>
 </body>

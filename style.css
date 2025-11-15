@@ -1,57 +1,61 @@
 body {
     margin: 0;
-    background: black;
+    background: #000;
     overflow: hidden;
-    font-family: Arial;
-    color: white;
+    font-family: "Cinzel", serif;
 }
 
-/* MENU PRINCIPAL */
-.menu {
+#menu {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: radial-gradient(circle at center, #0a0a16, #000);
+    animation: fadeIn 1.5s ease forwards;
+    z-index: 10;
 }
 
-.menu button {
-    display: block;
-    margin: 10px auto;
-    padding: 15px 30px;
-    font-size: 18px;
+#titulo {
+    color: #ffffff;
+    font-size: 48px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 15px #7aa8ff;
 }
 
-/* SUBMENU DE PERSONAGENS */
-.subMenu {
+.menu-opcao {
+    color: #ffffff;
+    font-size: 26px;
+    margin: 12px 0;
+    cursor: pointer;
+    transition: 0.3s ease;
+    text-shadow: 0 0 6px #6f9aff;
+}
+
+.menu-opcao:hover {
+    transform: scale(1.1);
+    text-shadow: 0 0 15px #b6cdff;
+}
+
+#game {
     display: none;
+    background-color: #000;
+    margin: auto;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 500px;
-    padding: 20px;
-    background: rgba(0,0,0,0.9);
-    border: 2px solid white;
-    border-radius: 10px;
-    color: white;
-    text-align: center;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
-.personagem {
-    margin-bottom: 25px;
+/* Fade */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
-
-.personagem img {
-    width: 150px;
-    height: auto;
-    border: 2px solid white;
-    margin-bottom: 10px;
-}
-
-/* FADE OUT DO MENU */
 @keyframes fadeOut {
-    to {
-        opacity: 0;
-    }
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
