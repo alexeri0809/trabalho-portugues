@@ -32,16 +32,14 @@ menuMusic.play();
 // MENU FUNÇÕES
 //--------------------------------------
 function iniciarJogo() {
-    let menu = document.getElementById("menu");
-    menu.style.animation = "fadeOut 1s forwards";
-
-    setTimeout(() => {
-        menu.style.display = "none";
-        canvas.style.display = "block";
-        menuMusic.pause();
-        iniciarCutscene();
-    }, 1000);
+    document.getElementById("menu").style.display = "none";
+    canvas.style.display = "block";
+    menuMusic.pause();
+    cutsceneActive = true;
+    iniciarCutscene();
+    cutsceneMusic.play();
 }
+
 
 function abrirPersonagens() { alert("Menu de personagens ainda não implementado."); }
 function abrirConfig() { alert("Configurações ainda não implementadas."); }
