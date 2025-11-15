@@ -182,9 +182,15 @@ mapImg.src = maps[currentMap].image;
 
 function iniciarGameplay() {
     gameState = "play";
-    mapImg.src = maps[currentMap].image;
     scenes = [];
+    
+    mapImg = new Image();
+    mapImg.onload = () => {
+        console.log("Mapa carregado!");
+    };
+    mapImg.src = maps[currentMap].image;
 }
+
 
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
