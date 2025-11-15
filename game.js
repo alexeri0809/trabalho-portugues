@@ -26,40 +26,40 @@ bgMusic.volume = 0.4;
 let interactSound = new Audio("assets/efeito_interagir.wav");
 interactSound.volume = 0.6;
 
-menuMusic.play();
-
 //--------------------------------------
 // MENU FUNÇÕES
 //--------------------------------------
 function iniciarJogo() {
     let menu = document.getElementById("menu");
-
     menu.style.animation = "fadeOut 1s forwards";
 
     setTimeout(() => {
         menu.style.display = "none";
         canvas.style.display = "block";
-
-        menuMusic.pause();
-
         iniciarCutscene();
     }, 1000);
 }
 
 function abrirPersonagens() {
-    alert("Mais tarde vamos colocar um menu de personagens com imagens. :)");
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("menuPersonagens").style.display = "block";
+}
+
+function fecharPersonagens() {
+    document.getElementById("menuPersonagens").style.display = "none";
+    document.getElementById("menu").style.display = "block";
 }
 
 function abrirConfig() {
-    alert("Futuramente podemos colocar: volume, fullscreen, controles, etc.");
+    alert("Configurações futuras serão adicionadas!");
 }
 
 function sair() {
-    alert("Obrigado por jogar! (num jogo real, isto fecharia o programa)");
+    alert("Obrigado por jogar!");
 }
 
 //--------------------------------------
-// CUTSCENE AUTOMÁTICA COM LEGENDAS
+// CUTSCENE COM LEGENDAS
 //--------------------------------------
 let scenes = [];
 let sceneTexts = [
@@ -81,6 +81,8 @@ let velocidadeLetra = 30;
 function iniciarCutscene() {
     gameState = "cutscene";
     scenes = [];
+    sceneIndex = 0;
+    sceneTimer = 0;
 
     for (let i = 1; i <= 4; i++) {
         let img = new Image();
@@ -88,12 +90,10 @@ function iniciarCutscene() {
         scenes.push(img);
     }
 
-    cutsceneMusic.play();
+    cutsceneMusic.play().catch(() => {});
 }
 
 function updateCutscene(dt) {
-    if (!cutsceneActive()) return;
-
     sceneTimer += dt;
 
     tempoTexto += dt;
@@ -108,36 +108,31 @@ function updateCutscene(dt) {
         sceneIndex++;
         letraIndex = 0;
         textoAtual = "";
-        tempoTexto = 0;
 
         if (sceneIndex >= scenes.length) {
-            cutsceneMusic.pause();
-            bgMusic.play();
             iniciarGameplay();
         }
     }
 }
 
 function drawCutscene() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 
     let img = scenes[sceneIndex];
-    if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (img.complete) {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
 
-    ctx.fillStyle = "rgba(0,0,0,0.65)";
-    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, canvas.height - 90, canvas.width, 90);
 
     ctx.fillStyle = "white";
     ctx.font = "22px Arial";
     ctx.fillText(textoAtual, 20, canvas.height - 40);
 }
 
-function cutsceneActive() {
-    return sceneIndex < scenes.length;
-}
-
 //--------------------------------------
-// GAMEPLAY (MAPAS + PLAYER + PORTAS)
+// GAMEPLAY
 //--------------------------------------
 let player = {
     x: 200, y: 200,
@@ -147,70 +142,37 @@ let player = {
 };
 player.sprite.src = "assets/player.png";
 
-// --- SISTEMA DE MAPAS ---
 let maps = {
     1: {
         image: "assets/mapa1.png",
-        colliders: [
-            { x: 0, y: 0, w: 640, h: 10 },
-            { x: 0, y: 470, w: 640, h: 10 },
-            { x: 0, y: 0, w: 10, h: 480 },
-            { x: 630, y: 0, w: 10, h: 480 }
-        ],
+        colliders: [],
         portas: [
-            { x: 500, y: 200, w: 60, h: 80, destino: 2 }
+            {x: 500, y: 200, w: 60, h: 80, destino: 2}
         ]
     },
     2: {
         image: "assets/mapa2.png",
-        colliders: [
-            { x: 0, y: 0, w: 640, h: 10 },
-            { x: 0, y: 470, w: 640, h: 10 },
-            { x: 0, y: 0, w: 10, h: 480 },
-            { x: 630, y: 0, w: 10, h: 480 }
-        ],
+        colliders: [],
         portas: [
-            { x: 50, y: 200, w: 60, h: 80, destino: 1 }
+            {x: 50, y: 200, w: 60, h: 80, destino: 1}
         ]
     }
 };
 
 let currentMap = 1;
-
-// --- SISTEMA DE CARREGAMENTO SEGURO ---
 let mapImg = new Image();
-let mapaCarregado = false;
-
-mapImg.onload = () => {
-    mapaCarregado = true;
-    console.log("Mapa carregado:", maps[currentMap].image);
-};
-
-mapImg.src = maps[currentMap].image;
 
 function iniciarGameplay() {
     gameState = "play";
-    loadMap(currentMap);
-    scenes = [];
+    mapImg.src = maps[currentMap].image;
+
+    bgMusic.play().catch(() => {});
 }
 
-function loadMap(id) {
-    mapaCarregado = false;
-    mapImg = new Image();
-    mapImg.onload = () => mapaCarregado = true;
-    mapImg.src = maps[id].image;
-}
-
-//--------------------------------------
-// CONTROLES
-//--------------------------------------
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-//--------------------------------------
-// COLISÃO
-//--------------------------------------
 function colisao(px, py, obj) {
     return (
         px < obj.x + obj.w &&
@@ -220,31 +182,6 @@ function colisao(px, py, obj) {
     );
 }
 
-function podeMover(nx, ny) {
-    for (let c of maps[currentMap].colliders) {
-        if (colisao(nx, ny, c)) return false;
-    }
-    return true;
-}
-
-//--------------------------------------
-// PORTAS (TROCAR DE MAPA COM SEGURANÇA)
-//--------------------------------------
-function interagirPorta() {
-    for (let p of maps[currentMap].portas) {
-        if (colisao(player.x, player.y, p)) {
-            interactSound.play();
-            currentMap = p.destino;
-            loadMap(currentMap);
-            player.x = 200;
-            player.y = 200;
-        }
-    }
-}
-
-//--------------------------------------
-// UPDATE GAME
-//--------------------------------------
 function updateGame() {
     let nx = player.x;
     let ny = player.y;
@@ -254,29 +191,24 @@ function updateGame() {
     if (keys["ArrowLeft"]) nx -= player.speed;
     if (keys["ArrowRight"]) nx += player.speed;
 
-    if (podeMover(nx, ny)) {
-        player.x = nx;
-        player.y = ny;
-    }
+    player.x = nx;
+    player.y = ny;
 
-    if (keys["e"]) interagirPorta();
+    if (keys["e"]) {
+        for (let p of maps[currentMap].portas) {
+            if (colisao(player.x, player.y, p)) {
+                interactSound.play().catch(() => {});
+                currentMap = p.destino;
+                mapImg.src = maps[currentMap].image;
+                player.x = 200;
+                player.y = 200;
+            }
+        }
+    }
 }
 
-//--------------------------------------
-// DRAW GAME
-//--------------------------------------
 function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (!mapaCarregado) {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText("A carregar mapa...", 20, 40);
-        return;
-    }
-
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
 
     maps[currentMap].portas.forEach(p => {
@@ -294,7 +226,6 @@ function drawGame() {
 // LOOP PRINCIPAL
 //--------------------------------------
 let lastTime = 0;
-
 function loop(timestamp) {
     let dt = timestamp - lastTime;
     lastTime = timestamp;
