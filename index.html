@@ -17,7 +17,26 @@
         <div class="menu-opcao" onclick="sair()">SAIR</div>
     </div>
 
-    <!-- CANVAS -->
+    <!-- TELA DE PERSONAGENS -->
+    <div id="tela-personagens">
+        <h1>ESCOLHA O PERSONAGEM</h1>
+
+        <div id="lista-personagens">
+            <div class="personagem">
+                <img src="assets/player.png">
+                <p>Herói 1</p>
+            </div>
+
+            <div class="personagem">
+                <img src="assets/player.png">
+                <p>Herói 2</p>
+            </div>
+        </div>
+
+        <button id="btn-voltar" onclick="voltarMenu()">Voltar</button>
+    </div>
+
+    <!-- CANVAS DO JOGO -->
     <canvas id="game"></canvas>
 
     <script src="game.js"></script>

@@ -5,6 +5,7 @@ body {
     font-family: "Cinzel", serif;
 }
 
+/* MENU */
 #menu {
     position: absolute;
     inset: 0;
@@ -39,6 +40,48 @@ body {
     text-shadow: 0 0 15px #b6cdff;
 }
 
+/* TELA DE PERSONAGENS */
+#tela-personagens {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,20,0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 20;
+}
+
+#lista-personagens {
+    display: flex;
+    gap: 40px;
+    margin: 30px;
+}
+
+.personagem {
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.personagem img {
+    width: 140px;
+    height: 140px;
+}
+
+.personagem:hover {
+    transform: scale(1.1);
+}
+
+#btn-voltar {
+    margin-top: 20px;
+    padding: 10px 25px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* CANVAS */
 #game {
     display: none;
     background-color: #000;
@@ -51,11 +94,5 @@ body {
 }
 
 /* Fade */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }

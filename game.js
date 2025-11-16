@@ -29,11 +29,10 @@ interactSound.volume = 0.6;
 menuMusic.play();
 
 //--------------------------------------
-// MENU FUNÇÕES
+// MENU AÇÕES
 //--------------------------------------
 function iniciarJogo() {
     let menu = document.getElementById("menu");
-
     menu.style.animation = "fadeOut 1s forwards";
 
     setTimeout(() => {
@@ -41,25 +40,30 @@ function iniciarJogo() {
         canvas.style.display = "block";
 
         menuMusic.pause();
-
         iniciarCutscene();
     }, 1000);
 }
 
 function abrirPersonagens() {
-    alert("Mais tarde vamos colocar um menu de personagens com imagens. :)");
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("tela-personagens").style.display = "flex";
+}
+
+function voltarMenu() {
+    document.getElementById("tela-personagens").style.display = "none";
+    document.getElementById("menu").style.display = "flex";
 }
 
 function abrirConfig() {
-    alert("Futuramente podemos colocar: volume, fullscreen, controles, etc.");
+    alert("Futuramente: volume, fullscreen, controles etc.");
 }
 
 function sair() {
-    alert("Obrigado por jogar! (num jogo real, isto fecharia o programa)");
+    alert("Obrigado por jogar!");
 }
 
 //--------------------------------------
-// CUTSCENE AUTOMÁTICA COM LEGENDAS
+// CUTSCENE SISTEMA
 //--------------------------------------
 let scenes = [];
 let sceneTexts = [
@@ -73,6 +77,7 @@ let sceneIndex = 0;
 let sceneTimer = 0;
 let sceneDuration = 4000;
 
+// texto animado
 let letraIndex = 0;
 let textoAtual = "";
 let tempoTexto = 0;
@@ -81,6 +86,9 @@ let velocidadeLetra = 30;
 function iniciarCutscene() {
     gameState = "cutscene";
     scenes = [];
+    sceneIndex = 0;
+    textoAtual = "";
+    letraIndex = 0;
 
     for (let i = 1; i <= 4; i++) {
         let img = new Image();
@@ -92,8 +100,6 @@ function iniciarCutscene() {
 }
 
 function updateCutscene(dt) {
-    if (!cutsceneActive()) return;
-
     sceneTimer += dt;
 
     tempoTexto += dt;
@@ -108,7 +114,6 @@ function updateCutscene(dt) {
         sceneIndex++;
         letraIndex = 0;
         textoAtual = "";
-        tempoTexto = 0;
 
         if (sceneIndex >= scenes.length) {
             cutsceneMusic.pause();
@@ -132,12 +137,8 @@ function drawCutscene() {
     ctx.fillText(textoAtual, 20, canvas.height - 40);
 }
 
-function cutsceneActive() {
-    return sceneIndex < scenes.length;
-}
-
 //--------------------------------------
-// GAMEPLAY (MAPAS + PLAYER + PORTAS)
+// GAMEPLAY
 //--------------------------------------
 let player = {
     x: 200, y: 200,
@@ -147,7 +148,6 @@ let player = {
 };
 player.sprite.src = "assets/player.png";
 
-// --- SISTEMA DE MAPAS ---
 let maps = {
     1: {
         image: "assets/mapa1.png",
@@ -177,21 +177,15 @@ let maps = {
 
 let currentMap = 1;
 
-// --- SISTEMA DE CARREGAMENTO SEGURO ---
 let mapImg = new Image();
 let mapaCarregado = false;
 
-mapImg.onload = () => {
-    mapaCarregado = true;
-    console.log("Mapa carregado:", maps[currentMap].image);
-};
-
+mapImg.onload = () => mapaCarregado = true;
 mapImg.src = maps[currentMap].image;
 
 function iniciarGameplay() {
     gameState = "play";
     loadMap(currentMap);
-    scenes = [];
 }
 
 function loadMap(id) {
@@ -228,7 +222,7 @@ function podeMover(nx, ny) {
 }
 
 //--------------------------------------
-// PORTAS (TROCAR DE MAPA COM SEGURANÇA)
+// PORTAS
 //--------------------------------------
 function interagirPorta() {
     for (let p of maps[currentMap].portas) {
