@@ -13,6 +13,20 @@ const ctx = canvas.getContext("2d");
 canvas.width = 960;  // podes alterar
 canvas.height = 540; // podes alterar
 
+// Garante que o canvas NÃO aparece logo no início
+canvas.style.display = "none";
+
+// Garante que o menu aparece e as outras telas ficam escondidas ao abrir a página
+window.addEventListener("load", () => {
+  const menu = document.getElementById("menu");
+  const telaPersonagens = document.getElementById("tela-personagens");
+  const telaFinal = document.getElementById("tela-final");
+
+  if (menu) menu.style.display = "flex";
+  if (telaPersonagens) telaPersonagens.classList.add("hidden");
+  if (telaFinal) telaFinal.classList.add("hidden");
+});
+
 // ---------- menu music (opcional) ----------
 let menuMusic = new Audio("assets/musica_menu.mp3");
 menuMusic.loop = true;
