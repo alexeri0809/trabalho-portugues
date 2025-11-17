@@ -65,8 +65,6 @@ function sair() {
 //--------------------------------------
 // CUTSCENE SISTEMA
 //--------------------------------------
-
-// >>> AQUI: TEXTOS COM QUEBRA DE LINHA <<<
 let scenes = [];
 let sceneTexts = [
     'Manuel de Souza Coutinho, depois de ver que\nD. João de Portugal desapareceu,\nquis casar com D. Madalena.',
@@ -81,14 +79,12 @@ let sceneTexts = [
 ];
 
 let sceneIndex = 0;
-let sceneTimer = 0;
-let sceneDuration = 4000;
 
 // texto animado
 let letraIndex = 0;
 let textoAtual = "";
 let tempoTexto = 0;
-let velocidadeLetra = 30;
+let velocidadeLetra = 30; // ms por letra (aprox.)
 
 function iniciarCutscene() {
     gameState = "cutscene";
@@ -96,6 +92,7 @@ function iniciarCutscene() {
     sceneIndex = 0;
     textoAtual = "";
     letraIndex = 0;
+    tempoTexto = 0;
 
     for (let i = 1; i <= 5; i++) {
         let img = new Image();
@@ -103,31 +100,45 @@ function iniciarCutscene() {
         scenes.push(img);
     }
 
+    cutsceneMusic.currentTime = 0;
     cutsceneMusic.play();
 }
 
-function updateCutscene(dt) {
-    sceneTimer += dt;
+// avançar cena ao carregar tecla
+function avancarCutscene() {
+    let textoCompleto = sceneTexts[sceneIndex];
 
-    // animação de texto, letra por letra (incluindo \n)
-    tempoTexto += dt;
-    if (letraIndex < sceneTexts[sceneIndex].length && tempoTexto > velocidadeLetra) {
-        textoAtual += sceneTexts[sceneIndex][letraIndex];
-        letraIndex++;
-        tempoTexto = 0;
+    // 1º clique: completa o texto se ainda estiver a escrever
+    if (letraIndex < textoCompleto.length) {
+        textoAtual = textoCompleto;
+        letraIndex = textoCompleto.length;
+        return;
     }
 
-    if (sceneTimer >= sceneDuration) {
-        sceneTimer = 0;
-        sceneIndex++;
-        letraIndex = 0;
-        textoAtual = "";
+    // 2º clique (texto completo): passa para a próxima cena
+    sceneIndex++;
+    letraIndex = 0;
+    textoAtual = "";
+    tempoTexto = 0;
 
-        if (sceneIndex >= scenes.length) {
-            cutsceneMusic.pause();
-            bgMusic.play();
-            iniciarGameplay();
-        }
+    // acabou as cenas -> começa o jogo
+    if (sceneIndex >= scenes.length) {
+        cutsceneMusic.pause();
+        bgMusic.currentTime = 0;
+        bgMusic.play();
+        iniciarGameplay();
+    }
+}
+
+function updateCutscene(dt) {
+    // animação de texto, letra por letra (incluindo \n)
+    tempoTexto += dt;
+    let textoCompleto = sceneTexts[sceneIndex];
+
+    if (letraIndex < textoCompleto.length && tempoTexto > velocidadeLetra) {
+        textoAtual += textoCompleto[letraIndex];
+        letraIndex++;
+        tempoTexto = 0;
     }
 }
 
@@ -135,11 +146,13 @@ function drawCutscene() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     let img = scenes[sceneIndex];
-    if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    if (img && img.complete) {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
 
     // Caixa escura no fundo para o texto
     ctx.fillStyle = "rgba(0,0,0,0.65)";
-    ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+    ctx.fillRect(0, canvas.height - 140, canvas.width, 140);
 
     // Texto (várias linhas, usando \n)
     ctx.fillStyle = "white";
@@ -147,12 +160,16 @@ function drawCutscene() {
 
     let linhas = textoAtual.split("\n");
     let startX = 20;
-    let startY = canvas.height - 90; // ponto inicial do texto
+    let startY = canvas.height - 110; // ponto inicial do texto
     let lineHeight = 26;
 
     for (let i = 0; i < linhas.length; i++) {
         ctx.fillText(linhas[i], startX, startY + i * lineHeight);
     }
+
+    // Dica para o jogador
+    ctx.font = "16px Arial";
+    ctx.fillText("Pressiona ESPAÇO ou ENTER para continuar...", 20, canvas.height - 15);
 }
 
 //--------------------------------------
@@ -217,8 +234,20 @@ function loadMap(id) {
 // CONTROLES
 //--------------------------------------
 let keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+
+document.addEventListener("keydown", e => {
+    keys[e.key] = true;
+
+    // controlar cutscene com espaço/enter
+    if (gameState === "cutscene" && (e.key === " " || e.key === "Enter")) {
+        e.preventDefault(); // evita scroll na página
+        avancarCutscene();
+    }
+});
+
+document.addEventListener("keyup", e => {
+    keys[e.key] = false;
+});
 
 //--------------------------------------
 // COLISÃO
