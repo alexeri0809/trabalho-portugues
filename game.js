@@ -39,20 +39,9 @@ const SCENE_TEXTS = [
    as imagens devem existir em: assets/personagens/<img>
 */
 const CHARACTERS = [
-  { name: "Arion", img: "personagem1.png", desc: "Descrição de Arion." },
-  { name: "Selene", img: "personagem2.png", desc: "Descrição de Selene." },
-  { name: "Kael", img: "personagem3.png", desc: "Descrição de Kael." },
-  { name: "Mira", img: "personagem4.png", desc: "Descrição de Mira." },
-  { name: "Rowan", img: "personagem5.png", desc: "Descrição de Rowan." },
-  { name: "Lyra", img: "personagem6.png", desc: "Descrição de Lyra." },
-  { name: "Tarek", img: "personagem7.png", desc: "Descrição de Tarek." },
-  { name: "Elora", img: "personagem8.png", desc: "Descrição de Elora." },
-  { name: "Draven", img: "personagem9.png", desc: "Descrição de Draven." },
-  { name: "Nyla", img: "personagem10.png", desc: "Descrição de Nyla." },
-  { name: "Oren", img: "personagem11.png", desc: "Descrição de Oren." },
-  { name: "Faylen", img: "personagem12.png", desc: "Descrição de Faylen." },
-  { name: "Sirius", img: "personagem13.png", desc: "Descrição de Sirius." },
-  { name: "Nara", img: "personagem14.png", desc: "Descrição de Nara." }
+  { name: "D.João de Portugal, o Fidalgo", img: "personagem1.png", desc: "D.joão de Portugal, primeiro marido de D.Madalena que desapareceu na batalha de alcacer quibir." },
+  { name: "D.Madalena", img: "personagem2.png", desc: "D.Madalena, uma mulher sentimental e depois de saber de D.Joao De Portugal não estava morto, ela ficou com sentimento de angústia e arrependimento." },
+  { name: "Manuel De Souza Coutinho.", img: "personagem3.png", desc: "Manuel De Souza Coutinho, foi o segundo homem de D.Madalena e foi ele que queimou o palacio real." }
 ];
 
 // ---------- Variáveis da cutscene ----------
