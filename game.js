@@ -13,10 +13,10 @@ const ctx = canvas.getContext("2d");
 canvas.width = 960;  // podes alterar
 canvas.height = 540; // podes alterar
 
-// Garante que o canvas NÃO aparece logo no início
+// garante que o canvas começa escondido
 canvas.style.display = "none";
 
-// Garante que o menu aparece e as outras telas ficam escondidas ao abrir a página
+// garante estado inicial das telas ao carregar a página
 window.addEventListener("load", () => {
   const menu = document.getElementById("menu");
   const telaPersonagens = document.getElementById("tela-personagens");
@@ -53,9 +53,21 @@ const SCENE_TEXTS = [
    as imagens devem existir em: assets/personagens/<img>
 */
 const CHARACTERS = [
-  { name: "D.João de Portugal, o Fidalgo", img: "personagem1.png", desc: "D.joão de Portugal, primeiro marido de D.Madalena que desapareceu na batalha de alcacer quibir." },
-  { name: "D.Madalena", img: "personagem2.png", desc: "D.Madalena, uma mulher sentimental e depois de saber de D.Joao De Portugal não estava morto, ela ficou com sentimento de angústia e arrependimento." },
-  { name: "Manuel De Souza Coutinho.", img: "personagem3.png", desc: "Manuel De Souza Coutinho, foi o segundo homem de D.Madalena e foi ele que queimou o palacio real." }
+  { 
+    name: "D.João de Portugal, o Fidalgo", 
+    img: "personagem1.png", 
+    desc: "D.João de Portugal, primeiro marido de D.Madalena que desapareceu na batalha de Alcácer Quibir." 
+  },
+  { 
+    name: "D.Madalena", 
+    img: "personagem2.png", 
+    desc: "D.Madalena, uma mulher sentimental e depois de saber que D.João de Portugal não estava morto, ficou com sentimento de angústia e arrependimento." 
+  },
+  { 
+    name: "Manuel de Souza Coutinho", 
+    img: "personagem3.png", 
+    desc: "Manuel de Souza Coutinho, segundo marido de D.Madalena e responsável por queimar o palácio real." 
+  }
 ];
 
 // ---------- Variáveis da cutscene ----------
@@ -85,7 +97,7 @@ function iniciarJogo() {
   document.getElementById("menu").style.display = "none";
   document.getElementById("tela-personagens").classList.add("hidden");
   document.getElementById("tela-final").classList.add("hidden");
-  canvas.style.display = "block";
+  canvas.style.display = "block"; // agora sim ativa a cutscene
   menuMusic.pause();
 
   // start cutscene
@@ -96,8 +108,6 @@ function iniciarJogo() {
   typingTimer = 0;
   isTyping = true;
   awaitingSpace = false;
-  // (opcional) tocar musica do menu só depois do clique:
-  // menuMusic.play();
 
   // ensure first scene image exists (no crash if missing)
   requestAnimationFrame(loop);
@@ -106,6 +116,7 @@ function iniciarJogo() {
 function abrirPersonagens() {
   document.getElementById("menu").style.display = "none";
   document.getElementById("tela-personagens").classList.remove("hidden");
+  document.getElementById("tela-final").classList.add("hidden");
   canvas.style.display = "none";
   populateCharacters();
 }
@@ -125,7 +136,7 @@ function sair() {
 }
 
 /* ---------------------------
-   Personagens: carrossel A
+   Personagens: carrossel
    --------------------------- */
 let currentChar = 0;
 function populateCharacters() {
@@ -175,7 +186,7 @@ function changeChar(delta) {
    Cutscene: teclas e tipo
    --------------------------- */
 document.addEventListener("keydown", (e) => {
-  if (gameStateIsCutscene() === false) return;
+  if (!gameStateIsCutscene()) return;
   if (e.code === "Space") {
     e.preventDefault();
     // se estiver a 'typear', completa a frase
@@ -192,8 +203,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 function gameStateIsCutscene() {
-  // canvas visible e estamos em cutscene (currentScene < scenes.length)
-  return canvas.style.display !== "none";
+  // só é cutscene quando o canvas foi ativado pelo jogo
+  return canvas.style.display === "block" && currentScene < scenes.length;
 }
 
 function advancePhraseOrScene() {
@@ -232,7 +243,7 @@ function loop(now) {
   last = now;
 
   // update typing
-  if (canvas.style.display !== "none" && currentScene < scenes.length) {
+  if (canvas.style.display === "block" && currentScene < scenes.length) {
     const sceneImg = scenes[currentScene];
     // typing logic
     if (isTyping) {
@@ -289,6 +300,7 @@ function drawScene() {
   ctx.fillStyle = "#fff";
   ctx.font = "22px Arial";
   drawWrappedText(displayedText, 28, canvas.height - 90, canvas.width - 56, 26);
+
   // hint
   if (!isTyping && awaitingSpace) {
     ctx.font = "18px Arial";
@@ -322,12 +334,13 @@ function drawWrappedText(text, x, y, maxWidth, lineHeight) {
 function voltarAoMenu() {
   document.getElementById("tela-final").classList.add("hidden");
   document.getElementById("menu").style.display = "flex";
+  canvas.style.display = "none";
 }
 
 /* ---------------------------
    Onde editar:
    - SCENE_TEXTS: linhas no topo do ficheiro (array de arrays)
-   - CHARACTERS: array com 14 personagens (nome / imagem / desc)
+   - CHARACTERS: array com personagens (nome / imagem / desc)
    - imagens: colocar em assets/cenas/cena1.png ... cena10.png
-             e assets/personagens/personagem1.png ... personagem14.png
+             e assets/personagens/personagem1.png ... personagemN.png
 */
