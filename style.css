@@ -1,139 +1,98 @@
-/* geral */
-* { box-sizing: border-box; }
 body {
-  margin: 0;
-  height: 100vh;
-  background: #000;
-  color: #fff;
-  font-family: "Arial", sans-serif;
-  overflow: hidden;
+    margin: 0;
+    background: #000;
+    overflow: hidden;
+    font-family: "Cinzel", serif;
 }
 
-/* menu */
+/* MENU */
 #menu {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #071025, #000);
-  z-index: 5;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: radial-gradient(circle at center, #0a0a16, #000);
+    animation: fadeIn 1.5s ease forwards;
+    z-index: 10;
 }
 
-#titulo { font-size: 48px; margin-bottom: 30px; text-shadow: 0 0 10px #6fa8ff; }
+#titulo {
+    color: #ffffff;
+    font-size: 48px;
+    margin-bottom: 40px;
+    text-shadow: 0 0 15px #7aa8ff;
+}
+
 .menu-opcao {
-  padding: 12px 28px;
-  margin: 10px 0;
-  background: rgba(255,255,255,0.06);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 22px;
-  transition: transform .15s, background .15s;
-}
-.menu-opcao:hover { transform: scale(1.06); background: rgba(255,255,255,0.10); }
-
-/* canvas */
-#game {
-  display: none;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-  width: 960px;   /* escala grande para apresentação */
-  height: 540px;
-  background: #000;
-  border: 2px solid #222;
-  box-shadow: 0 0 30px #000;
-  z-index: 2;
+    color: #ffffff;
+    font-size: 26px;
+    margin: 12px 0;
+    cursor: pointer;
+    transition: 0.3s ease;
+    text-shadow: 0 0 6px #6f9aff;
 }
 
-/* personagens (carrossel) */
-.hidden { display: none; }
+.menu-opcao:hover {
+    transform: scale(1.1);
+    text-shadow: 0 0 15px #b6cdff;
+}
+
+/* TELA DE PERSONAGENS */
 #tela-personagens {
-  position: absolute;
-  inset: 0;
-  background: rgba(2,8,18,0.95);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 30px;
-  z-index: 6;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,20,0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 20;
 }
 
-#tela-personagens .close {
-  position: absolute;
-  left: 20px;
-  top: 20px;
-  padding: 8px 14px;
-  cursor: pointer;
+#lista-personagens {
+    display: flex;
+    gap: 40px;
+    margin: 30px;
 }
 
-#carrossel {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-top: 20px;
+.personagem {
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-#charDisplay {
-  width: 420px;
-  text-align: center;
+.personagem img {
+    width: 140px;
+    height: 140px;
 }
 
-#charDisplay img {
-  width: 320px;
-  height: 320px;
-  object-fit: contain;
-  border: 3px solid #fff;
-  background: rgba(255,255,255,0.04);
-  margin-bottom: 8px;
+.personagem:hover {
+    transform: scale(1.1);
 }
 
-.arrow {
-  font-size: 36px;
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 8px 16px;
+#btn-voltar {
+    margin-top: 20px;
+    padding: 10px 25px;
+    font-size: 20px;
+    cursor: pointer;
 }
 
-#charThumbs {
-  margin-top: 18px;
-  width: 90%;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
+/* CANVAS */
+#game {
+    display: none;
+    background-color: #000;
+    margin: auto;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
-.thumb {
-  width: 80px;
-  height: 80px;
-  border: 2px solid rgba(255,255,255,0.06);
-  cursor: pointer;
-  object-fit: cover;
-  padding: 2px;
-  transition: transform .12s, border-color .12s;
-}
-.thumb:hover { transform: scale(1.05); border-color: #fff; }
 
-/* tela final */
-#tela-final {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 8;
-}
-#tela-final h1 { font-size: 36px; margin-bottom: 12px; }
-#tela-final p { margin-bottom: 20px; }
-
-/* responsividade simples */
-@media (max-width: 980px) {
-  #game { width: 100%; height: calc(100vh - 40px); }
-  #charDisplay img { width: 220px; height: 220px; }
-}
+/* Fade */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }

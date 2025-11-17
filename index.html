@@ -1,49 +1,44 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="utf-8" />
-  <title>Cutscene Demo</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>Teu Jogo</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- MENU -->
-  <div id="menu">
-    <div id="titulo">TEU JOGO</div>
 
-    <div class="menu-opcao" onclick="iniciarJogo()">INICIAR JOGO</div>
-    <div class="menu-opcao" onclick="abrirPersonagens()">PERSONAGENS</div>
-    <div class="menu-opcao" onclick="sair()">SAIR</div>
-  </div>
+    <!-- MENU -->
+    <div id="menu">
+        <div id="titulo">TEU JOGO</div>
 
-  <!-- TELA DE PERSONAGENS (CARROSSEL) -->
-  <div id="tela-personagens" class="hidden">
-    <button class="close" onclick="voltarMenu()">Voltar</button>
-
-    <div id="carrossel">
-      <button id="prevChar" class="arrow" onclick="changeChar(-1)">‹</button>
-
-      <div id="charDisplay">
-        <img id="charImg" src="" alt="Personagem" />
-        <h3 id="charName"></h3>
-        <p id="charDesc"></p>
-      </div>
-
-      <button id="nextChar" class="arrow" onclick="changeChar(1)">›</button>
+        <div class="menu-opcao" onclick="iniciarJogo()">INICIAR JOGO</div>
+        <div class="menu-opcao" onclick="abrirPersonagens()">PERSONAGENS</div>
+        <div class="menu-opcao" onclick="abrirConfig()">CONFIGURAÇÕES</div>
+        <div class="menu-opcao" onclick="sair()">SAIR</div>
     </div>
 
-    <div id="charThumbs"></div>
-  </div>
+    <!-- TELA DE PERSONAGENS -->
+    <div id="tela-personagens">
+        <h1>ESCOLHA O PERSONAGEM</h1>
 
-  <!-- CANVAS DA CUTSCENE -->
-  <canvas id="game"></canvas>
+        <div id="lista-personagens">
+            <div class="personagem">
+                <img src="assets/player.png">
+                <p>Herói 1</p>
+            </div>
 
-  <!-- TELA FINAL -->
-  <div id="tela-final" class="hidden">
-    <h1>Obrigado por verem</h1>
-    <p>Este é o nosso trabalho!</p>
-    <button onclick="voltarAoMenu()">Voltar ao Menu</button>
-  </div>
+            <div class="personagem">
+                <img src="assets/player.png">
+                <p>Herói 2</p>
+            </div>
+        </div>
 
-  <script src="game.js"></script>
+        <button id="btn-voltar" onclick="voltarMenu()">Voltar</button>
+    </div>
+
+    <!-- CANVAS DO JOGO -->
+    <canvas id="game"></canvas>
+
+    <script src="game.js"></script>
 </body>
 </html>

@@ -1,346 +1,308 @@
-/* -----------------------------
-   CONFIGURAÇÕES / EDITAR AQUI
-   -----------------------------
-   - Substitui as frases em `SCENE_TEXTS` por tuas frases reais.
-   - Substitui as imagens em assets/cenas/cena1.png ... cena10.png
-   - Substitui as imagens de personagens em assets/personagens/personagemX.png
-   - Se quiseres mudar o tamanho do canvas, altera canvas.width/height abaixo.
-*/
+//--------------------------------------
+// ESTADOS DO JOGO
+//--------------------------------------
+let gameState = "menu";
 
-// ---------- canvas ----------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-canvas.width = 960;  // podes alterar
-canvas.height = 540; // podes alterar
+canvas.width = 640;
+canvas.height = 480;
 
-// garante que o canvas começa escondido
-canvas.style.display = "none";
-
-// garante estado inicial das telas ao carregar a página
-window.addEventListener("load", () => {
-  const menu = document.getElementById("menu");
-  const telaPersonagens = document.getElementById("tela-personagens");
-  const telaFinal = document.getElementById("tela-final");
-
-  if (menu) menu.style.display = "flex";
-  if (telaPersonagens) telaPersonagens.classList.add("hidden");
-  if (telaFinal) telaFinal.classList.add("hidden");
-});
-
-// ---------- menu music (opcional) ----------
+//--------------------------------------
+// MÚSICAS
+//--------------------------------------
 let menuMusic = new Audio("assets/musica_menu.mp3");
 menuMusic.loop = true;
 menuMusic.volume = 0.5;
-// não tocamos automaticamente para evitar bloqueios do browser
 
-// ---------- SCENES TEXTS (EDITA AQUI) ----------
-/* formato: array de 10 arrays, cada um com 2 strings (frase1, frase2) */
-const SCENE_TEXTS = [
-  ["(EDITAR) Cena1 — frase 1", "(EDITAR) Cena1 — frase 2"],
-  ["(EDITAR) Cena2 — frase 1", "(EDITAR) Cena2 — frase 2"],
-  ["(EDITAR) Cena3 — frase 1", "(EDITAR) Cena3 — frase 2"],
-  ["(EDITAR) Cena4 — frase 1", "(EDITAR) Cena4 — frase 2"],
-  ["(EDITAR) Cena5 — frase 1", "(EDITAR) Cena5 — frase 2"],
-  ["(EDITAR) Cena6 — frase 1", "(EDITAR) Cena6 — frase 2"],
-  ["(EDITAR) Cena7 — frase 1", "(EDITAR) Cena7 — frase 2"],
-  ["(EDITAR) Cena8 — frase 1", "(EDITAR) Cena8 — frase 2"],
-  ["(EDITAR) Cena9 — frase 1", "(EDITAR) Cena9 — frase 2"],
-  ["(EDITAR) Cena10 — frase 1", "(EDITAR) Cena10 — frase 2"]
-];
+let cutsceneMusic = new Audio("assets/musica_cutscene.mp3");
+cutsceneMusic.loop = true;
+cutsceneMusic.volume = 0.8;
 
-// ---------- PERSONAGENS (EDITA AQUI) ----------
-/* cada item: { name: "Nome", img: "personagemX.png", desc: "texto curto" } 
-   as imagens devem existir em: assets/personagens/<img>
-*/
-const CHARACTERS = [
-  { 
-    name: "D.João de Portugal, o Fidalgo", 
-    img: "personagem1.png", 
-    desc: "D.João de Portugal, primeiro marido de D.Madalena que desapareceu na batalha de Alcácer Quibir." 
-  },
-  { 
-    name: "D.Madalena", 
-    img: "personagem2.png", 
-    desc: "D.Madalena, uma mulher sentimental e depois de saber que D.João de Portugal não estava morto, ficou com sentimento de angústia e arrependimento." 
-  },
-  { 
-    name: "Manuel de Souza Coutinho", 
-    img: "personagem3.png", 
-    desc: "Manuel de Souza Coutinho, segundo marido de D.Madalena e responsável por queimar o palácio real." 
-  }
-];
+let bgMusic = new Audio("assets/musica_fundo.mp3");
+bgMusic.loop = true;
+bgMusic.volume = 0.4;
 
-// ---------- Variáveis da cutscene ----------
-let scenes = [];         // imagens (carregadas)
-let currentScene = 0;    // 0..9
-let currentPhrase = 0;   // 0 ou 1
-let typingIndex = 0;     // index da letra
-let typingSpeed = 30;    // ms por letra
-let typingTimer = 0;
-let displayedText = "";
-let isTyping = false;    // se está a fazer typewriter
-let awaitingSpace = false; // se terminou a frase e espera espaço
+let interactSound = new Audio("assets/efeito_interagir.wav");
+interactSound.volume = 0.6;
 
-// ---------- carregar imagens das cenas ----------
-function preloadScenes() {
-  scenes = [];
-  for (let i = 1; i <= 10; i++) {
-    const img = new Image();
-    img.src = `assets/cenas/cena${i}.png`;
-    scenes.push(img);
-  }
-}
-preloadScenes();
+menuMusic.play();
 
-// ---------- controle do menu ----------
+//--------------------------------------
+// MENU AÇÕES
+//--------------------------------------
 function iniciarJogo() {
-  document.getElementById("menu").style.display = "none";
-  document.getElementById("tela-personagens").classList.add("hidden");
-  document.getElementById("tela-final").classList.add("hidden");
-  canvas.style.display = "block"; // agora sim ativa a cutscene
-  menuMusic.pause();
+    let menu = document.getElementById("menu");
+    menu.style.animation = "fadeOut 1s forwards";
 
-  // start cutscene
-  currentScene = 0;
-  currentPhrase = 0;
-  displayedText = "";
-  typingIndex = 0;
-  typingTimer = 0;
-  isTyping = true;
-  awaitingSpace = false;
+    setTimeout(() => {
+        menu.style.display = "none";
+        canvas.style.display = "block";
 
-  // ensure first scene image exists (no crash if missing)
-  requestAnimationFrame(loop);
+        menuMusic.pause();
+        iniciarCutscene();
+    }, 1000);
 }
 
 function abrirPersonagens() {
-  document.getElementById("menu").style.display = "none";
-  document.getElementById("tela-personagens").classList.remove("hidden");
-  document.getElementById("tela-final").classList.add("hidden");
-  canvas.style.display = "none";
-  populateCharacters();
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("tela-personagens").style.display = "flex";
 }
 
 function voltarMenu() {
-  document.getElementById("tela-personagens").classList.add("hidden");
-  document.getElementById("tela-final").classList.add("hidden");
-  document.getElementById("menu").style.display = "flex";
-  canvas.style.display = "none";
+    document.getElementById("tela-personagens").style.display = "none";
+    document.getElementById("menu").style.display = "flex";
+}
+
+function abrirConfig() {
+    alert("Futuramente: volume, fullscreen, controles etc.");
 }
 
 function sair() {
-  // tenta fechar a janela (funciona se a janela foi aberta por script). fallback para about:blank
-  try { window.open('', '_self').close(); } catch(e) {}
-  // fallback
-  window.location.href = "about:blank";
+    alert("Obrigado por jogar!");
 }
 
-/* ---------------------------
-   Personagens: carrossel
-   --------------------------- */
-let currentChar = 0;
-function populateCharacters() {
-  const nameEl = document.getElementById("charName");
-  const imgEl = document.getElementById("charImg");
-  const descEl = document.getElementById("charDesc");
-  const thumbs = document.getElementById("charThumbs");
+//--------------------------------------
+// CUTSCENE SISTEMA
+//--------------------------------------
+let scenes = [];
+let sceneTexts = [
+    "Manuel de Souza Coutinho, depois de ver que D.João de Portugal desapareceu quis casar com a D.Madalena.",
+    "Depois disso o governo queria fugir para casa deles, Manuel De Souza coutinho queima a sua propria casa onde vivia ele, sua esposa e filha de D.Madalena.",
+    "Logo apos isso, Manuel De Souza Coutinho vai viver juntamente com a sua mulher em casa de seu antigo homem, D.João de Portugal.",
+    "Um  tempo depois, D.João de Portugal volta para sua casa e descobre que sua esposa, D.Madalena esta casada com o Manuel De Souza Coutinho.",
+    "Continua..."
+];
 
-  if (!nameEl) return;
+let sceneIndex = 0;
+let sceneTimer = 0;
+let sceneDuration = 4000;
 
-  // set current
-  currentChar = 0;
-  imgEl.src = `assets/personagens/${CHARACTERS[currentChar].img}`;
-  nameEl.textContent = CHARACTERS[currentChar].name;
-  descEl.textContent = CHARACTERS[currentChar].desc;
+// texto animado
+let letraIndex = 0;
+let textoAtual = "";
+let tempoTexto = 0;
+let velocidadeLetra = 30;
 
-  // thumbs
-  thumbs.innerHTML = "";
-  CHARACTERS.forEach((c, idx) => {
-    const t = document.createElement("img");
-    t.src = `assets/personagens/${c.img}`;
-    t.className = "thumb";
-    t.title = c.name;
-    t.onclick = () => {
-      currentChar = idx;
-      imgEl.src = `assets/personagens/${CHARACTERS[currentChar].img}`;
-      nameEl.textContent = CHARACTERS[currentChar].name;
-      descEl.textContent = CHARACTERS[currentChar].desc;
-    };
-    thumbs.appendChild(t);
-  });
-}
+function iniciarCutscene() {
+    gameState = "cutscene";
+    scenes = [];
+    sceneIndex = 0;
+    textoAtual = "";
+    letraIndex = 0;
 
-function changeChar(delta) {
-  currentChar += delta;
-  if (currentChar < 0) currentChar = CHARACTERS.length - 1;
-  if (currentChar >= CHARACTERS.length) currentChar = 0;
-  const imgEl = document.getElementById("charImg");
-  const nameEl = document.getElementById("charName");
-  const descEl = document.getElementById("charDesc");
-  imgEl.src = `assets/personagens/${CHARACTERS[currentChar].img}`;
-  nameEl.textContent = CHARACTERS[currentChar].name;
-  descEl.textContent = CHARACTERS[currentChar].desc;
-}
-
-/* ---------------------------
-   Cutscene: teclas e tipo
-   --------------------------- */
-document.addEventListener("keydown", (e) => {
-  if (!gameStateIsCutscene()) return;
-  if (e.code === "Space") {
-    e.preventDefault();
-    // se estiver a 'typear', completa a frase
-    if (isTyping) {
-      const full = SCENE_TEXTS[currentScene][currentPhrase];
-      displayedText = full;
-      isTyping = false;
-      awaitingSpace = true;
-    } else if (awaitingSpace) {
-      // espaço quando já terminou a frase -> avança para a próxima frase/scene
-      advancePhraseOrScene();
+    for (let i = 1; i <= 5; i++) {
+        let img = new Image();
+        img.src = `assets/cenas/cena${i}.png`;
+        scenes.push(img);
     }
-  }
-});
 
-function gameStateIsCutscene() {
-  // só é cutscene quando o canvas foi ativado pelo jogo
-  return canvas.style.display === "block" && currentScene < scenes.length;
+    cutsceneMusic.play();
 }
 
-function advancePhraseOrScene() {
-  if (currentPhrase === 0) {
-    currentPhrase = 1;
-    displayedText = "";
-    typingIndex = 0;
-    isTyping = true;
-    awaitingSpace = false;
-  } else {
-    // ir para próxima cena
-    currentScene++;
-    currentPhrase = 0;
-    displayedText = "";
-    typingIndex = 0;
-    isTyping = true;
-    awaitingSpace = false;
-    if (currentScene >= scenes.length) {
-      endCutscene();
+function updateCutscene(dt) {
+    sceneTimer += dt;
+
+    tempoTexto += dt;
+    if (letraIndex < sceneTexts[sceneIndex].length && tempoTexto > velocidadeLetra) {
+        textoAtual += sceneTexts[sceneIndex][letraIndex];
+        letraIndex++;
+        tempoTexto = 0;
     }
-  }
-}
 
-function endCutscene() {
-  // hide canvas and show final screen
-  canvas.style.display = "none";
-  document.getElementById("tela-final").classList.remove("hidden");
-}
+    if (sceneTimer >= sceneDuration) {
+        sceneTimer = 0;
+        sceneIndex++;
+        letraIndex = 0;
+        textoAtual = "";
 
-/* ---------------------------
-   Draw / Loop
-   --------------------------- */
-let last = performance.now();
-function loop(now) {
-  const dt = now - last;
-  last = now;
-
-  // update typing
-  if (canvas.style.display === "block" && currentScene < scenes.length) {
-    const sceneImg = scenes[currentScene];
-    // typing logic
-    if (isTyping) {
-      typingTimer += dt;
-      if (typingTimer >= typingSpeed) {
-        const full = SCENE_TEXTS[currentScene][currentPhrase];
-        typingTimer = 0;
-        if (typingIndex < full.length) {
-          displayedText += full[typingIndex];
-          typingIndex++;
-        } else {
-          // finished typing
-          isTyping = false;
-          awaitingSpace = true;
+        if (sceneIndex >= scenes.length) {
+            cutsceneMusic.pause();
+            bgMusic.play();
+            iniciarGameplay();
         }
-      }
+    }
+}
+
+function drawCutscene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let img = scenes[sceneIndex];
+    if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+    ctx.fillStyle = "white";
+    ctx.font = "22px Arial";
+    ctx.fillText(textoAtual, 20, canvas.height - 40);
+}
+
+//--------------------------------------
+// GAMEPLAY
+//--------------------------------------
+let player = {
+    x: 200, y: 200,
+    width: 64, height: 64,
+    speed: 2,
+    sprite: new Image()
+};
+player.sprite.src = "assets/player.png";
+
+let maps = {
+    1: {
+        image: "assets/mapa1.png",
+        colliders: [
+            { x: 0, y: 0, w: 640, h: 10 },
+            { x: 0, y: 470, w: 640, h: 10 },
+            { x: 0, y: 0, w: 10, h: 480 },
+            { x: 630, y: 0, w: 10, h: 480 }
+        ],
+        portas: [
+            { x: 500, y: 200, w: 60, h: 80, destino: 2 }
+        ]
+    },
+    2: {
+        image: "assets/mapa2.png",
+        colliders: [
+            { x: 0, y: 0, w: 640, h: 10 },
+            { x: 0, y: 470, w: 640, h: 10 },
+            { x: 0, y: 0, w: 10, h: 480 },
+            { x: 630, y: 0, w: 10, h: 480 }
+        ],
+        portas: [
+            { x: 50, y: 200, w: 60, h: 80, destino: 1 }
+        ]
+    }
+};
+
+let currentMap = 1;
+
+let mapImg = new Image();
+let mapaCarregado = false;
+
+mapImg.onload = () => mapaCarregado = true;
+mapImg.src = maps[currentMap].image;
+
+function iniciarGameplay() {
+    gameState = "play";
+    loadMap(currentMap);
+}
+
+function loadMap(id) {
+    mapaCarregado = false;
+    mapImg = new Image();
+    mapImg.onload = () => mapaCarregado = true;
+    mapImg.src = maps[id].image;
+}
+
+//--------------------------------------
+// CONTROLES
+//--------------------------------------
+let keys = {};
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+//--------------------------------------
+// COLISÃO
+//--------------------------------------
+function colisao(px, py, obj) {
+    return (
+        px < obj.x + obj.w &&
+        px + player.width > obj.x &&
+        py < obj.y + obj.h &&
+        py + player.height > obj.y
+    );
+}
+
+function podeMover(nx, ny) {
+    for (let c of maps[currentMap].colliders) {
+        if (colisao(nx, ny, c)) return false;
+    }
+    return true;
+}
+
+//--------------------------------------
+// PORTAS
+//--------------------------------------
+function interagirPorta() {
+    for (let p of maps[currentMap].portas) {
+        if (colisao(player.x, player.y, p)) {
+            interactSound.play();
+            currentMap = p.destino;
+            loadMap(currentMap);
+            player.x = 200;
+            player.y = 200;
+        }
+    }
+}
+
+//--------------------------------------
+// UPDATE GAME
+//--------------------------------------
+function updateGame() {
+    let nx = player.x;
+    let ny = player.y;
+
+    if (keys["ArrowUp"]) ny -= player.speed;
+    if (keys["ArrowDown"]) ny += player.speed;
+    if (keys["ArrowLeft"]) nx -= player.speed;
+    if (keys["ArrowRight"]) nx += player.speed;
+
+    if (podeMover(nx, ny)) {
+        player.x = nx;
+        player.y = ny;
     }
 
-    // draw
-    drawScene();
-  }
-
-  requestAnimationFrame(loop);
+    if (keys["e"]) interagirPorta();
 }
 
-requestAnimationFrame(loop);
+//--------------------------------------
+// DRAW GAME
+//--------------------------------------
+function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function drawScene() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  // background (fallback)
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // draw scene image if loaded
-  const img = scenes[currentScene];
-  if (img && img.complete && img.naturalWidth !== 0) {
-    // maintain cover by drawing to full canvas
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  } else {
-    // placeholder text
-    ctx.fillStyle = "#111";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#fff";
-    ctx.font = "18px Arial";
-    ctx.fillText("Imagem da cena não encontrada: assets/cenas/cena" + (currentScene+1) + ".png", 20, 40);
-  }
-
-  // draw black translucent box
-  ctx.fillStyle = "rgba(0,0,0,0.65)";
-  ctx.fillRect(0, canvas.height - 140, canvas.width, 140);
-
-  // draw displayedText (multi-line wrap)
-  ctx.fillStyle = "#fff";
-  ctx.font = "22px Arial";
-  drawWrappedText(displayedText, 28, canvas.height - 90, canvas.width - 56, 26);
-
-  // hint
-  if (!isTyping && awaitingSpace) {
-    ctx.font = "18px Arial";
-    ctx.fillStyle = "#cfcfcf";
-    ctx.fillText("Pressiona ESPAÇO para continuar", canvas.width - 320, canvas.height - 22);
-  }
-}
-
-// helper: wrap text
-function drawWrappedText(text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ');
-  let line = '';
-  let curY = y;
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      ctx.fillText(line, x, curY);
-      line = words[n] + ' ';
-      curY += lineHeight;
-    } else {
-      line = testLine;
+    if (!mapaCarregado) {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("A carregar mapa...", 20, 40);
+        return;
     }
-  }
-  ctx.fillText(line, x, curY);
+
+    ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
+
+    maps[currentMap].portas.forEach(p => {
+        if (colisao(player.x, player.y, p)) {
+            ctx.fillStyle = "white";
+            ctx.font = "22px Arial";
+            ctx.fillText("Interagir (E)", p.x - 15, p.y - 10);
+        }
+    });
+
+    ctx.drawImage(player.sprite, player.x, player.y, player.width, player.height);
 }
 
-/* ---------------------------
-   Final helpers: voltar ao menu
-   --------------------------- */
-function voltarAoMenu() {
-  document.getElementById("tela-final").classList.add("hidden");
-  document.getElementById("menu").style.display = "flex";
-  canvas.style.display = "none";
+//--------------------------------------
+// LOOP PRINCIPAL
+//--------------------------------------
+let lastTime = 0;
+
+function loop(timestamp) {
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    if (gameState === "cutscene") {
+        updateCutscene(dt);
+        drawCutscene();
+    } else if (gameState === "play") {
+        updateGame();
+        drawGame();
+    }
+
+    requestAnimationFrame(loop);
 }
 
-/* ---------------------------
-   Onde editar:
-   - SCENE_TEXTS: linhas no topo do ficheiro (array de arrays)
-   - CHARACTERS: array com personagens (nome / imagem / desc)
-   - imagens: colocar em assets/cenas/cena1.png ... cena10.png
-             e assets/personagens/personagem1.png ... personagemN.png
-*/
+loop();
