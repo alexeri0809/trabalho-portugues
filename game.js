@@ -65,12 +65,18 @@ function sair() {
 //--------------------------------------
 // CUTSCENE SISTEMA
 //--------------------------------------
+
+// >>> AQUI: TEXTOS COM QUEBRA DE LINHA <<<
 let scenes = [];
 let sceneTexts = [
-    'Manuel de Souza Coutinho, depois de ver que D.João de Portugal desapareceu quis casar com a D.Madalena.',
-    'Depois disso o governo queria fugir para casa deles, Manuel De Souza coutinho queima a sua propria casa onde vivia ele, sua esposa e filha de D.Madalena.',
-    'Logo apos isso, Manuel De Souza Coutinho vai viver juntamente com a sua mulher em casa de seu antigo homem, D.João de Portugal.',
-    'Um  tempo depois, D.João de Portugal volta para sua casa e descobre que sua esposa, D.Madalena esta casada com o Manuel De Souza Coutinho.',
+    'Manuel de Souza Coutinho, depois de ver que\nD. João de Portugal desapareceu,\nquis casar com D. Madalena.',
+    
+    'Depois disso o governo queria fugir para casa deles.\nManuel de Souza Coutinho queima a sua própria casa,\nonde vivia ele, sua esposa e a filha de D. Madalena.',
+    
+    'Logo após isso, Manuel de Souza Coutinho vai viver\njuntamente com a sua mulher em casa de seu antigo senhor,\nD. João de Portugal.',
+    
+    'Um tempo depois, D. João de Portugal volta para casa\ne descobre que sua esposa, D. Madalena,\nestá casada com Manuel de Souza Coutinho.',
+    
     'Continua...'
 ];
 
@@ -103,6 +109,7 @@ function iniciarCutscene() {
 function updateCutscene(dt) {
     sceneTimer += dt;
 
+    // animação de texto, letra por letra (incluindo \n)
     tempoTexto += dt;
     if (letraIndex < sceneTexts[sceneIndex].length && tempoTexto > velocidadeLetra) {
         textoAtual += sceneTexts[sceneIndex][letraIndex];
@@ -130,12 +137,22 @@ function drawCutscene() {
     let img = scenes[sceneIndex];
     if (img.complete) ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+    // Caixa escura no fundo para o texto
     ctx.fillStyle = "rgba(0,0,0,0.65)";
-    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+    ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
 
+    // Texto (várias linhas, usando \n)
     ctx.fillStyle = "white";
     ctx.font = "22px Arial";
-    ctx.fillText(textoAtual, 20, canvas.height - 40);
+
+    let linhas = textoAtual.split("\n");
+    let startX = 20;
+    let startY = canvas.height - 90; // ponto inicial do texto
+    let lineHeight = 26;
+
+    for (let i = 0; i < linhas.length; i++) {
+        ctx.fillText(linhas[i], startX, startY + i * lineHeight);
+    }
 }
 
 //--------------------------------------
@@ -254,7 +271,7 @@ function updateGame() {
         player.y = ny;
     }
 
-    if (keys["e"]) interagirPorta();
+    if (keys["e"] || keys["E"]) interagirPorta();
 }
 
 //--------------------------------------
