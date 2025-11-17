@@ -67,11 +67,11 @@ function sair() {
 //--------------------------------------
 let scenes = [];
 let sceneTexts = [
-    "Manuel de Souza Coutinho, depois de ver que D.João de Portugal desapareceu quis casar com a D.Madalena.",
-    "Depois disso o governo queria fugir para casa deles, Manuel De Souza coutinho queima a sua propria casa onde vivia ele, sua esposa e filha de D.Madalena.",
-    "Logo apos isso, Manuel De Souza Coutinho vai viver juntamente com a sua mulher em casa de seu antigo homem, D.João de Portugal.",
-    "Um  tempo depois, D.João de Portugal volta para sua casa e descobre que sua esposa, D.Madalena esta casada com o Manuel De Souza Coutinho.",
-    "Continua..."
+    'Manuel de Souza Coutinho, depois de ver que D.João de Portugal desapareceu quis casar com a D.Madalena.',
+    'Depois disso o governo queria fugir para casa deles, Manuel De Souza coutinho queima a sua propria casa onde vivia ele, sua esposa e filha de D.Madalena.',
+    'Logo apos isso, Manuel De Souza Coutinho vai viver juntamente com a sua mulher em casa de seu antigo homem, D.João de Portugal.',
+    'Um  tempo depois, D.João de Portugal volta para sua casa e descobre que sua esposa, D.Madalena esta casada com o Manuel De Souza Coutinho.',
+    'Continua...'
 ];
 
 let sceneIndex = 0;
